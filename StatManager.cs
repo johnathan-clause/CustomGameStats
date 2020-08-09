@@ -578,8 +578,11 @@ namespace CustomGameStats
                 VitalsInfo _vitals = new VitalsInfo
                 {
                     healthRatio = c.HealthRatio,
+                    burntHealthRatio = c.Stats.BurntHealthRatio,
                     staminaRatio = c.StaminaRatio,
-                    manaRatio = c.ManaRatio
+                    burntStaminaRatio = c.Stats.BurntStaminaRatio,
+                    manaRatio = c.ManaRatio,
+                    burntManaRatio = c.Stats.BurntManaRatio
                 };
 
                 if (File.Exists(_path))
