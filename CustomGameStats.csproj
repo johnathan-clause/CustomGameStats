@@ -102,5 +102,12 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="util\VitalsInfo.cs" />
   </ItemGroup>
+  <ItemGroup>
+    <Content Include=".gitattributes" />
+    <Content Include=".gitignore" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="README.md" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
