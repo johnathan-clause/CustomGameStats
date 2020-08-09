@@ -8,6 +8,7 @@ using HarmonyLib;
 
 namespace CustomGameStats
 {
+    //let's try pushing to git once again....
     public class StatManager : MonoBehaviour
     {
         public static StatManager instance;
