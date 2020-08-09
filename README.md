@@ -1,7 +1,7 @@
 # CustomGameStats
 <strong>Outward mod allowing the customization of character's stats.</strong>
 
-HUGE shout-out to OutlanderSinai</a>! Their code provided the basis for the code of this mod. I started with little to no experience in C# and absolutely no knowledge of Outward's code. If interested check out their <a href=https://github.com/sinaioutlander>GitHub</a> and mods on the <a href=https://www.nexusmods.com/users/68319717?tab=user+files>Nexus</a>. Again, thanks a bunch!
+HUGE shout-out to OutlanderSinai! Their code provided the basis for the code of this mod. I started with little to no experience in C# and absolutely no knowledge of Outward's code. If interested check out their <a href="https://github.com/sinaioutlander">GitHub</a> and mods on the <a href="https://www.nexusmods.com/users/68319717?tab=user+files">Nexus</a>. Again, thanks a bunch!
 
 <strong>Requires:</strong>
   - <a href=https://github.com/BepInEx/BepInEx>BepInEx</a>
