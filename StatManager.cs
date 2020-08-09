@@ -232,11 +232,11 @@ namespace CustomGameStats
         {
             _stats.RefreshVitalMaxStat();
             _stats.SetHealth(_stats.MaxHealth * _ratios.healthRatio);
-            AT.SetValue(_stats.BurntHealth * _ratios.burntHealthRatio, typeof(CharacterStats), _stats, "m_burntHealth");
+            AT.SetValue(_stats.MaxHealth * _ratios.burntHealthRatio, typeof(CharacterStats), _stats, "m_burntHealth");
             _stats.SetMana(_stats.MaxMana * _ratios.manaRatio);
-            AT.SetValue(_stats.BurntMana * _ratios.burntManaRatio, typeof(CharacterStats), _stats, "m_burntMana");
+            AT.SetValue(_stats.MaxMana * _ratios.burntManaRatio, typeof(CharacterStats), _stats, "m_burntMana");
             AT.SetValue(_stats.MaxStamina * _ratios.staminaRatio, typeof(CharacterStats), _stats, "m_stamina");
-            AT.SetValue(_stats.BurntStamina * _ratios.burntStaminaRatio, typeof(CharacterStats), _stats, "m_burntStamina");
+            AT.SetValue(_stats.MaxStamina * _ratios.burntStaminaRatio, typeof(CharacterStats), _stats, "m_burntStamina");
         }
 
         private void SetCustomStat(CharacterStats _stats, string _stackSource, Tag _tag, float _val, bool _mult, ModConfig _config)
