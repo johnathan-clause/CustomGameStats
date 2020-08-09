@@ -667,6 +667,10 @@ namespace CustomGameStats
                                 Debug.Log("Client applying synced custom player stats...");
                                 instance.ApplyCustomStats(_char, instance._currentPlayerSyncInfo, Settings.playerStats);
                             }
+                            else
+                            {
+                                return true;
+                            }
                         }
 
                         if (instance._currentAiSyncInfo != null)
@@ -675,6 +679,10 @@ namespace CustomGameStats
                             {
                                 Debug.Log("Client applying synced custom ai stats...");
                                 instance.ApplyCustomStats(_char, instance._currentAiSyncInfo, Settings.aiStats);
+                            }
+                            else
+                            {
+                                return true;
                             }
                         }
                     }
