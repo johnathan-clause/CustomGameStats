@@ -228,15 +228,34 @@ namespace CustomGameStats
             }
         }
 
-        private void UpdateVitals(CharacterStats _stats, VitalsInfo _ratios)
+        private void UpdateVitals(CharacterStats _stats, VitalsInfo _ratios, ModConfig _config)
         {
+            float _hp, _hpb, _sp, _spb, _mp, _mpb;
             _stats.RefreshVitalMaxStat();
-            _stats.SetHealth(_stats.MaxHealth * _ratios.healthRatio);
-            AT.SetValue(_stats.MaxHealth * _ratios.burntHealthRatio, typeof(CharacterStats), _stats, "m_burntHealth");
-            _stats.SetMana(_stats.MaxMana * _ratios.manaRatio);
-            AT.SetValue(_stats.MaxMana * _ratios.burntManaRatio, typeof(CharacterStats), _stats, "m_burntMana");
-            AT.SetValue(_stats.MaxStamina * _ratios.staminaRatio, typeof(CharacterStats), _stats, "m_stamina");
-            AT.SetValue(_stats.MaxStamina * _ratios.burntStaminaRatio, typeof(CharacterStats), _stats, "m_burntStamina");
+            if (!(bool)_config.GetValue(Settings.gameBehaviour))
+            {
+                _hp = SaveManager.Instance.GetCharacterSave(_stats.GetComponent<Character>().UID).PSave.Health;
+                _hpb = SaveManager.Instance.GetCharacterSave(_stats.GetComponent<Character>().UID).PSave.BurntHealth;
+                _sp = SaveManager.Instance.GetCharacterSave(_stats.GetComponent<Character>().UID).PSave.Stamina;
+                _spb = SaveManager.Instance.GetCharacterSave(_stats.GetComponent<Character>().UID).PSave.BurntStamina;
+                _mp = SaveManager.Instance.GetCharacterSave(_stats.GetComponent<Character>().UID).PSave.Mana;
+                _mpb = SaveManager.Instance.GetCharacterSave(_stats.GetComponent<Character>().UID).PSave.BurntMana;
+            }
+            else
+            {
+                _hp = _stats.MaxHealth * _ratios.healthRatio;
+                _hpb = _stats.MaxHealth * _ratios.burntHealthRatio;
+                _sp = _stats.MaxStamina * _ratios.staminaRatio;
+                _spb = _stats.MaxStamina * _ratios.burntStaminaRatio;
+                _mp = _stats.MaxMana * _ratios.manaRatio;
+                _mpb = _stats.MaxMana * _ratios.burntManaRatio;
+            }
+            _stats.SetHealth(_hp);
+            AT.SetValue(_hpb, typeof(CharacterStats), _stats, "m_burntHealth");
+            AT.SetValue(_sp, typeof(CharacterStats), _stats, "m_stamina");
+            AT.SetValue(_spb, typeof(CharacterStats), _stats, "m_burntStamina");
+            _stats.SetMana(_mp);
+            AT.SetValue(_mpb, typeof(CharacterStats), _stats, "m_burntMana");
         }
 
         private void SetCustomStat(CharacterStats _stats, string _stackSource, Tag _tag, float _val, bool _mult, ModConfig _config)
@@ -478,7 +497,7 @@ namespace CustomGameStats
                     
                     if (_char.IsAI)
                     {
-                        UpdateVitals(_char.Stats, _ratios);
+                        UpdateVitals(_char.Stats, _ratios, _config);
                         _modCharacters.Add(_char.UID);
                     }
                     else
@@ -489,7 +508,7 @@ namespace CustomGameStats
                         }
 
                         _lastVitals.Add(_char.UID, _ratios);
-                        UpdateVitals(_char.Stats, _ratios);
+                        UpdateVitals(_char.Stats, _ratios, _config);
 
                         if (!_modPCs.Contains(_char.UID))
                         {
