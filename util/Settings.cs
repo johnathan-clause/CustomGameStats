@@ -34,7 +34,7 @@ namespace CustomGameStats
         public static float minimumMod = 0.01f;
 
         //stat names
-        public static string modMult = " + modMult";
+        public static string modMult = "Mult";
         public static string foodDepleteMod = "FoodDepleteRate";
         public static string drinkDepleteMod = "DrinkDepleteRate";
         public static string sleepDepleteMod = "SleepDepleteRate";
