@@ -12,6 +12,7 @@
 *.sln
 *.gitattributes
 *.gitignore
+*.csproj
 
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
