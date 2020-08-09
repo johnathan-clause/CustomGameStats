@@ -18,9 +18,7 @@ namespace CustomGameStats
 
         //rules
         public static string gameBehaviour = "Enforce Game Behaviour";
-        public static string gameBehaviourDesc = "Prevents values from being reduced below a natural threshold where unexpected behaviour would occur as a result. Disable with caution!";
         public static string strictMinimum = "Enforce Strict Minimum";
-        public static string strictMinimumDesc = "Prevents values from being reduced below zero. Only disable if you know what you are doing! (Ignored while Enforce Game Behaviour is enabled.)";
 
         //descriptors
         public static string multDesc = "Is a percent modifier?";
