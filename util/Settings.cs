@@ -24,7 +24,7 @@ namespace CustomGameStats
         public static string multDesc = "Is a percent modifier?";
         public static string modDesc = "Modifier value: ";
         public static string toggleDesc = "Enable/disable";
-        public static string behaviourDesc = "Prevents values from reducing stats below a threshold that would cause unexpected behaviour to occur. Use with caution!";
+        public static string behaviourDesc = "Prevents unexpected behaviour to occur. Use with caution!";
         public static string strictDesc = "Prevents values from being reduced below zero. Do not touch unless you know what you are doing! (Ignored if Enforce Game Behaviour enabled)";
 
         //stat minimums
