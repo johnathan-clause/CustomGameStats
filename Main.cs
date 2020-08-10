@@ -10,7 +10,7 @@ namespace CustomGameStats
     [BepInDependency(DEPENDANT, BepInDependency.DependencyFlags.HardDependency)]
     public class Main : BaseUnityPlugin
     {
-        public const string GUID = "com.theinsterstice.customgamestats";
+        public const string GUID = "com.theinterstice.customgamestats";
         public const string NAME = "Custom Game Stats";
         public const string VERSION = "1.3.2";
 
