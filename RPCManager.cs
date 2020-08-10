@@ -23,6 +23,7 @@ namespace CustomGameStats
 
         public void RequestSettings()
         {
+            Debug.Log("Requesting sync....");
             photonView.RPC("RequestSettingsRPC", PhotonNetwork.masterClient, new object[0]);
         }
 
@@ -30,6 +31,30 @@ namespace CustomGameStats
         private void RequestSettingsRPC()
         {
             StartCoroutine(DelayedSendSettings());
+        }
+
+        private void IterateSettings(ModConfig _config, string _set)
+        {
+            foreach (FloatSetting _f in _config.Settings)
+            {
+                foreach (BoolSetting _b in _config.Settings)
+                {
+                    if (_b.Name.Contains(_f.Name + Settings.modMult))
+                    {
+                        photonView.RPC("SendBoolSettingRPC", PhotonTargets.All, new object[]
+                        {
+                                _b.m_value,
+                                _set
+                        });
+                    }
+                }
+
+                photonView.RPC("SendFloatSettingRPC", PhotonTargets.All, new object[]
+                {
+                        _f.m_value,
+                        _set
+                });
+            }
         }
 
         private IEnumerator DelayedSendSettings()
@@ -42,17 +67,26 @@ namespace CustomGameStats
             if (!PhotonNetwork.isNonMasterClientInRoom && (StatManager.instance.timeOfLastSync < 0 || Time.time - StatManager.instance.timeOfLastSync > 10f))
             {
                 StatManager.instance.timeOfLastSync = Time.time;
-
-                photonView.RPC("SendSettingsRPC", PhotonTargets.All, new object[] { Main.playerConfig, Main.aiConfig });
+                IterateSettings(Main.playerConfig, "player");
+                IterateSettings(Main.aiConfig, "ai");
             }
         }
 
         [PunRPC]
-        private void SendSettingsRPC(ModConfig _playerSyncInfo, ModConfig _aiSyncInfo)
+        private void SendBoolSettingRPC(bool _bool, string _set)
         {
             if (PhotonNetwork.isNonMasterClientInRoom)
             {
-                StatManager.instance.SetSyncInfo(_playerSyncInfo, _aiSyncInfo);
+                StatManager.instance.SetSyncBoolInfo(_bool, _set);
+            }
+        }
+
+        [PunRPC]
+        private void SendFloatSettingRPC(float _float, string _set)
+        {
+            if (PhotonNetwork.isNonMasterClientInRoom)
+            {
+                StatManager.instance.SetSyncFloatInfo(_float, _set);
             }
         }
     }
