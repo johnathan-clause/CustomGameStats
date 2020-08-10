@@ -80,6 +80,8 @@ namespace CustomGameStats
             _currentPlayerSyncInfo = _playerSyncInfo;
             _currentAiSyncInfo = _aiSyncInfo;
 
+            Debug.Log("Checking synced player health: " + (float)_currentPlayerSyncInfo.GetValue(Settings.healthMod));
+            Debug.Log("Checking synced ai health: " + (float)_currentAiSyncInfo.GetValue(Settings.healthMod));
             foreach (Character c in CharacterManager.Instance.Characters.Values)
             {
                 if (c.IsAI)
@@ -207,7 +209,7 @@ namespace CustomGameStats
         private IEnumerator DelayedInvoke(CharacterStats _instance)
         {
             float start = Time.time;
-
+            Debug.Log("Starting delayed invoke...");
             while (Time.time - start  < 5f && _currentPlayerSyncInfo == null && _currentAiSyncInfo == null)
             {
                 if (!NetworkLevelLoader.Instance.AllPlayerDoneLoading)
@@ -222,6 +224,7 @@ namespace CustomGameStats
             {
                 try
                 {
+                    Debug.Log("Trying reverse patch...");
                     CharacterStats_ApplyCoopStats.ReversePatch(_instance);
                 }
                 catch{}
@@ -545,6 +548,11 @@ namespace CustomGameStats
                 {
                     Character c = CharacterManager.Instance.GetCharacter(u);
 
+                    if (c == null)
+                    {
+                        _modPCs.Remove(u);
+                    }
+
                     if (c.HealthRatio != _lastVitals.GetValueSafe(u).healthRatio && c.HealthRatio <= 1)
                     {
                         _boo = true;
@@ -625,6 +633,14 @@ namespace CustomGameStats
             }
         }
 
+        private IEnumerator WaitForLoading()
+        {
+            while (!NetworkLevelLoader.Instance.AllPlayerDoneLoading)
+            {
+                yield return new WaitForSeconds(0.2f);
+            }
+        }
+
         [HarmonyPatch(typeof(CharacterStats), "ApplyCoopStats")]
         public class CharacterStats_ApplyCoopStats
         {
@@ -652,6 +668,7 @@ namespace CustomGameStats
                     return true;
                 }
 
+                instance.WaitForLoading();
                 __instance.RefreshVitalMaxStat();
 
                 if (!PhotonNetwork.isNonMasterClientInRoom)
