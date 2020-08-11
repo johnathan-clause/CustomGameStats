@@ -9,15 +9,20 @@ namespace CustomGameStats
         public static string playerStats = "PlayerStatStack";
         public static string aiStats = "AiStatStack";
 
-        //mod enable/disable
+        //mod naming
         public static string modName = "CustomGameStats";
         public static string playerStatsTitle = " - Player Stats";
         public static string aiStatsTitle = " - AI Stats";
-        public static string toggleSwitch = "ToggleSwitch";
 
-        //rules
-        public static string gameBehaviour = "Enforce Game Behaviour";
-        public static string strictMinimum = "Enforce Strict Minimum";
+        //rules names
+        public static string toggleSwitch = "ToggleSwitch";
+        public static string gameBehaviour = "GameBehaviour";
+        public static string strictMinimum = "StrictMinimum";
+
+        //rules section
+        public static string toggleSection = "Toggle Custom Stats";
+        public static string behaviourSection = "Enforce Game Behaviour";
+        public static string strictSection = "Enforce Strict Minimums";
 
         //descriptors
         public static string multDesc = "Is a percent modifier?";
@@ -98,9 +103,6 @@ namespace CustomGameStats
         public static string skillCooldownMod = "SkillCooldownModifier";
 
         //stat sections
-        public static string toggleSection = "Toggle Custom Stats";
-        public static string behaviourSection = "Enforce Game Behaviour";
-        public static string strictSection = "Enforce Strict Minimums";
         public static string foodDepleteSection = "Food Depletion Rate";
         public static string drinkDepleteSection = "Drink Depletion Rate";
         public static string sleepDepleteSection = "Sleep Depletion Rate";
