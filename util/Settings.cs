@@ -5,10 +5,6 @@ namespace CustomGameStats
 {
     public class Settings
     {
-        //stat stacks
-        public static string playerStats = "PlayerStatStack";
-        public static string aiStats = "AiStatStack";
-
         //mod naming
         public static string modName = "CustomGameStats";
         public static string playerStatsTitle = " - Player Stats";
@@ -30,6 +26,10 @@ namespace CustomGameStats
         public static string toggleDesc = "Enable/disable";
         public static string behaviourDesc = "Prevents unexpected behaviour to occur. Use with caution!";
         public static string strictDesc = "Prevents values from being reduced below zero. Do not touch unless you know what you are doing! (Ignored if Enforce Game Behaviour enabled)";
+
+        //stat stacks
+        public static string playerStats = "PlayerStatStack";
+        public static string aiStats = "AiStatStack";
 
         //stat minimums
         public static float minimum = 0f;
