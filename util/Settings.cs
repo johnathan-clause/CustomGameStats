@@ -14,7 +14,6 @@ namespace CustomGameStats
         public static string playerStatsTitle = " - Player Stats";
         public static string aiStatsTitle = " - AI Stats";
         public static string toggleSwitch = "ToggleSwitch";
-        public static string toggleDescription = "Turn custom stats on or off";
 
         //rules
         public static string gameBehaviour = "Enforce Game Behaviour";
