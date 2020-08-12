@@ -50,14 +50,13 @@ namespace CustomGameStats
             return;
         }
 
-        public static UID GetTagUIDForName(string _tagName)
+        public static UID GetTagUID(string _tagName)
         {
-            TagSourceManager instance = TagSourceManager.Instance;
-            foreach (Tag tag in (Tag[])GetValue(typeof(TagSourceManager), instance, "m_tags"))
+            foreach (Tag _tag in (Tag[])GetValue(typeof(TagSourceManager), TagSourceManager.Instance, "m_tags"))
             {
-                if (tag.TagName.Equals(_tagName))
+                if (_tag.TagName.Equals(_tagName))
                 {
-                    return tag.UID;
+                    return _tag.UID;
                 }
             }
             return null;
