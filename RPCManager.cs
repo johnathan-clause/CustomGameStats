@@ -18,8 +18,7 @@ namespace CustomGameStats
         internal void Start()
         {
             var photon = gameObject.AddComponent<PhotonView>();
-
-            photon.viewID = 902;
+            photon.viewID = 777;
         }
 
         public void RequestSync()  //client
