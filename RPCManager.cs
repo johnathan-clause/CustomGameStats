@@ -31,12 +31,6 @@ namespace CustomGameStats
             photonView.RPC("RequestSyncRPC", PhotonNetwork.masterClient, new object[0]);
         }
 
-        public void Sync() //host
-        {
-            Debug.Log("RPC sending client notification...");
-            photonView.RPC("SyncRPC", PhotonTargets.All, new object[0]);
-        }
-
         [PunRPC]
         private void RequestSyncRPC()  //host
         {
@@ -171,16 +165,6 @@ namespace CustomGameStats
             if (PhotonNetwork.isNonMasterClientInRoom)
             {
                 StatManager.instance.SetSyncInfo();
-            }
-        }
-
-        [PunRPC]
-        private void SyncRPC()  //client
-        {
-            if (PhotonNetwork.isNonMasterClientInRoom)
-            {
-                Debug.Log("Recieved sync notification...");
-                StatManager.instance.isInfoSynced = false;
             }
         }
     }
