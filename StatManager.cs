@@ -12,9 +12,12 @@ namespace CustomGameStats
     {
         public static StatManager instance;
 
-        public float timeOfLastSync = -1f;
-        public bool splitStarted = false;
         public Character splitPlayer;
+        public ModConfig currentPlayerSyncInfo;
+        public ModConfig currentAiSyncInfo;
+        public Action syncHandler = SyncHandler;
+        public bool splitStarted = false;
+        public bool isInfoSynced = false;
 
         private static readonly string _dir = @"Mods\ModConfigs\";
         private static readonly string _file = _dir + Settings.modName;
@@ -25,17 +28,20 @@ namespace CustomGameStats
         private readonly Dictionary<string, VitalsInfo> _lastVitals = new Dictionary<string, VitalsInfo>();
 
         private string _currentScene = "";
-        private bool _sceneChanged = false;
-        private ModConfig _currentPlayerSyncInfo;
-        private ModConfig _currentAiSyncInfo;
         private string _currentHostUID = "";
-        private float _timeOfLastSyncRequest = -5f;
+        private bool _sceneChanged = false;
         private bool _vitalsUpdated = false;
         private float _lastVitalsUpdate = -5f;
 
         internal void Awake()
         {
             instance = this;
+        }
+
+        internal void Start()
+        {
+            Main.playerConfig.OnSettingsSaved += syncHandler;
+            Main.aiConfig.OnSettingsSaved += syncHandler;
         }
 
         internal void Update()
@@ -73,25 +79,57 @@ namespace CustomGameStats
             }
         }
 
-        public void SetSyncInfo(ModConfig _playerSyncInfo, ModConfig _aiSyncInfo)
+        public void SetSyncInfo()  //client
         {
-            _currentHostUID = CharacterManager.Instance.GetWorldHostCharacter()?.UID;
-
-            _currentPlayerSyncInfo = _playerSyncInfo;
-            _currentAiSyncInfo = _aiSyncInfo;
-
-            Debug.Log("Checking synced player health: " + (float)_currentPlayerSyncInfo.GetValue(Settings.healthMod));
-            Debug.Log("Checking synced ai health: " + (float)_currentAiSyncInfo.GetValue(Settings.healthMod));
+            Debug.Log("Setting sync info....");
+            instance._currentHostUID = CharacterManager.Instance.GetWorldHostCharacter()?.UID;
+            Debug.Log("Preparing characters...");
             foreach (Character c in CharacterManager.Instance.Characters.Values)
             {
+                if (c == null)
+                {
+                    Debug.Log("Sync character null!");
+                    return;
+                }
+
                 if (c.IsAI)
                 {
-                    ApplyCustomStats(c, _currentAiSyncInfo, Settings.aiStats);
+                    Debug.Log("Setting ai sync stats...");
+                    ApplyCustomStats(c, instance.currentAiSyncInfo, Settings.aiStats);
+                    Debug.Log("Ai sync info updated!");
                 }
                 else
                 {
-                    ApplyCustomStats(c, _currentPlayerSyncInfo, Settings.playerStats);
+                    Debug.Log("Setting player sync stats...");
+                    ApplyCustomStats(c, instance.currentPlayerSyncInfo, Settings.playerStats);
+                    Debug.Log("Player sync info updated!");
                 }
+            }
+        }
+
+        public void SetSyncBoolInfo(string _name, bool _bool, string _flag)  //client
+        {
+            if (_flag == "player")
+            {
+                instance.currentPlayerSyncInfo.SetValue(_name, _bool);
+            }
+
+            if (_flag == "ai")
+            {
+                instance.currentAiSyncInfo.SetValue(_name, _bool);
+            }
+        }
+
+        public void SetSyncFloatInfo(string _name, float _float, string _flag)  //client
+        {
+            if (_flag == "player")
+            {
+                instance.currentPlayerSyncInfo.SetValue(_name, _float);
+            }
+
+            if (_flag == "ai")
+            {
+                instance.currentAiSyncInfo.SetValue(_name, _float);
             }
         }
 
@@ -156,20 +194,16 @@ namespace CustomGameStats
             }
         }
 
-        private static UID GetTagUIDForName(string _tagName)
+        private static void SyncHandler()  //host
         {
-            TagSourceManager instance = TagSourceManager.Instance;
-            foreach (Tag tag in (Tag[])AT.GetValue(typeof(TagSourceManager), instance, "m_tags"))
+            if (PhotonNetwork.isMasterClient && !PhotonNetwork.offlineMode)
             {
-                if (tag.TagName.Equals(_tagName))
-                {
-                    return tag.UID;
-                }
+                Debug.Log("Notifying client to sync info...");
+                RPCManager.instance.Sync();
             }
-            return null;
         }
 
-        private bool UpdateSyncInfo()
+        private bool UpdateSyncInfo()  //client
         {
             if (CharacterManager.Instance.GetWorldHostCharacter() is Character host)
             {
@@ -177,20 +211,17 @@ namespace CustomGameStats
                 {
                     if (PhotonNetwork.isNonMasterClientInRoom)
                     {
-                        if (Time.time - _timeOfLastSyncRequest > 5f)
+                        if (!isInfoSynced)
                         {
-                            Debug.Log("Sync info updated!");
-                            _timeOfLastSyncRequest = Time.time;
-                            _currentPlayerSyncInfo = null;
-                            _currentAiSyncInfo = null;
-                            RPCManager.instance.RequestSettings();
+                            RPCManager.instance.RequestSync();
+                            Debug.Log("Sync info updating...");
                         }
                     }
                     else
                     {
                         _currentHostUID = host.UID;
-                        _currentPlayerSyncInfo = Main.playerConfig;
-                        _currentAiSyncInfo = Main.aiConfig;
+                        currentPlayerSyncInfo = Main.playerConfig;
+                        currentAiSyncInfo = Main.aiConfig;
                     }
 
                     return true;
@@ -206,28 +237,22 @@ namespace CustomGameStats
             }
         }
 
-        private IEnumerator DelayedInvoke(CharacterStats _instance)
+        private IEnumerator CO_InvokeOrig(CharacterStats _instance)  //client
         {
-            float start = Time.time;
             Debug.Log("Starting delayed invoke...");
-            while (Time.time - start  < 5f && _currentPlayerSyncInfo == null && _currentAiSyncInfo == null)
+            while (!NetworkLevelLoader.Instance.AllPlayerDoneLoading && (currentPlayerSyncInfo == null || currentAiSyncInfo == null))
             {
-                if (!NetworkLevelLoader.Instance.AllPlayerDoneLoading)
-                {
-                    start += 1f;
-                }
-
                 yield return new WaitForSeconds(1.0f);
             }
-
-            if (_currentPlayerSyncInfo == null || _currentAiSyncInfo == null ||  !(bool)_currentPlayerSyncInfo.GetValue(Settings.toggleSwitch) || !(bool)_currentAiSyncInfo.GetValue(Settings.toggleSwitch))
+            
+            if (instance.currentPlayerSyncInfo == null || instance.currentAiSyncInfo == null || !(bool)instance.currentPlayerSyncInfo.GetValue(Settings.toggleSwitch) || !(bool)instance.currentAiSyncInfo.GetValue(Settings.toggleSwitch))
             {
                 try
                 {
                     Debug.Log("Trying reverse patch...");
                     CharacterStats_ApplyCoopStats.ReversePatch(_instance);
                 }
-                catch{}
+                catch { }
             }
         }
 
@@ -458,6 +483,7 @@ namespace CustomGameStats
         {
             if (_modCharacters.Contains(_char.UID))
             {
+                Debug.Log(_char.Name + "_" + _char.UID + " already modded!");
                 return;
             }
 
@@ -465,7 +491,7 @@ namespace CustomGameStats
             {
                 if (_setting is FloatSetting _mod)
                 {
-                    Tag _tag = TagSourceManager.Instance.GetTag(GetTagUIDForName(_mod.Name));
+                    Tag _tag = TagSourceManager.Instance.GetTag(AT.GetTagUID(_mod.Name));
                     float _val = _mod.m_value;
                     bool _mult = true;
 
@@ -512,12 +538,8 @@ namespace CustomGameStats
 
                         _lastVitals.Add(_char.UID, _ratios);
                         UpdateVitals(_char.Stats, _ratios, _config);
-
-                        if (!_modPCs.Contains(_char.UID))
-                        {
-                            _modPCs.Add(_char.UID);
-                            SaveVitalsInfo();
-                        }
+                        _modPCs.Add(_char.UID);
+                        SaveVitalsInfo();
                     }
                 }
             }
@@ -550,7 +572,9 @@ namespace CustomGameStats
 
                     if (c == null)
                     {
+                        Debug.Log("Character is null...");
                         _modPCs.Remove(u);
+                        return _boo;
                     }
 
                     if (c.HealthRatio != _lastVitals.GetValueSafe(u).healthRatio && c.HealthRatio <= 1)
@@ -595,7 +619,7 @@ namespace CustomGameStats
             {
                 Character c = CharacterManager.Instance.GetCharacter(u);
 
-                if (c == null)
+                if (c == null || !c.IsLocalPlayer)
                 {
                     _modPCs.Remove(u);
                     return;
@@ -617,11 +641,6 @@ namespace CustomGameStats
                     File.Delete(_path);
                 }
 
-                if (!c.IsLocalPlayer)
-                {
-                    return;
-                }
-
                 if (_lastVitals.ContainsKey(u))
                 {
                     _lastVitals.Remove(u);
@@ -630,14 +649,6 @@ namespace CustomGameStats
                 _lastVitals.Add(u, _vitals);
                 _vitalsUpdated = false;
                 File.WriteAllText(_path, JsonUtility.ToJson(_vitals));
-            }
-        }
-
-        private IEnumerator WaitForLoading()
-        {
-            while (!NetworkLevelLoader.Instance.AllPlayerDoneLoading)
-            {
-                yield return new WaitForSeconds(0.2f);
             }
         }
 
@@ -655,8 +666,10 @@ namespace CustomGameStats
             {
                 var _char = __instance.GetComponent<Character>();
                 var _flag = Settings.toggleSwitch;
+                var _init = AT.GetValue(typeof(Character), _char, "m_startInitDone");
+                var _late = AT.GetValue(typeof(Character), _char, "m_lateInitDone");
 
-                if ((!(bool)Main.playerConfig.GetValue(_flag) && !(bool)Main.aiConfig.GetValue(_flag)) || NetworkLevelLoader.Instance.IsGameplayPaused)
+                if ((!(bool)Main.playerConfig.GetValue(_flag) && !(bool)Main.aiConfig.GetValue(_flag)) || NetworkLevelLoader.Instance.IsGameplayPaused || (!(bool)_init && !(bool)_late))
                 {
                     return true;
                 }
@@ -668,7 +681,6 @@ namespace CustomGameStats
                     return true;
                 }
 
-                instance.WaitForLoading();
                 __instance.RefreshVitalMaxStat();
 
                 if (!PhotonNetwork.isNonMasterClientInRoom)
@@ -692,36 +704,32 @@ namespace CustomGameStats
                 }
                 else
                 {
-                    if (instance.UpdateSyncInfo() || instance._currentPlayerSyncInfo == null || instance._currentAiSyncInfo == null)
+                    if (instance.UpdateSyncInfo() || instance.currentPlayerSyncInfo == null || instance.currentAiSyncInfo == null)
                     {
                         Debug.Log("Client requesting sync...");
-                        instance.StartCoroutine(instance.DelayedInvoke(__instance));
+                        instance.StartCoroutine(instance.CO_InvokeOrig(__instance));
                     }
                     else
                     {
-                        if (instance._currentPlayerSyncInfo != null)
+                        if ((!(bool)instance.currentPlayerSyncInfo.GetValue(_flag) && !(bool)instance.currentAiSyncInfo.GetValue(_flag)) || NetworkLevelLoader.Instance.IsGameplayPaused || (!(bool)_init && !(bool)_late))
                         {
-                            if ((bool)instance._currentPlayerSyncInfo.GetValue(_flag))
-                            {
-                                Debug.Log("Client applying synced custom player stats...");
-                                instance.ApplyCustomStats(_char, instance._currentPlayerSyncInfo, Settings.playerStats);
-                            }
-                            else
-                            {
-                                return true;
-                            }
+                            return true;
                         }
 
-                        if (instance._currentAiSyncInfo != null)
+                        if (!_char.IsAI)
                         {
-                            if ((bool)instance._currentAiSyncInfo.GetValue(_flag))
+                            if ((bool)instance.currentPlayerSyncInfo.GetValue(_flag))
+                            {
+                                Debug.Log("Client applying synced custom player stats...");
+                                instance.ApplyCustomStats(_char, instance.currentPlayerSyncInfo, Settings.playerStats);
+                            }
+                        }
+                        else
+                        {
+                            if ((bool)instance.currentAiSyncInfo.GetValue(_flag))
                             {
                                 Debug.Log("Client applying synced custom ai stats...");
-                                instance.ApplyCustomStats(_char, instance._currentAiSyncInfo, Settings.aiStats);
-                            }
-                            else
-                            {
-                                return true;
+                                instance.ApplyCustomStats(_char, instance.currentAiSyncInfo, Settings.aiStats);
                             }
                         }
                     }
