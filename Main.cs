@@ -46,28 +46,28 @@ namespace CustomGameStats
 
         private ModConfig SetupConfig(string _set)
         {
-            List<BBSetting> _BB = new List<BBSetting>();
+            List<BBSetting> _bbs = new List<BBSetting>();
 
             if (_set == Settings.aiStatsTitle)
             {
                 var _settings = new Settings();
-                _BB.AddRange(_settings.rulesSettings);
-                _BB.AddRange(_settings.characterSettings);
+                _bbs.AddRange(_settings.rulesSettings);
+                _bbs.AddRange(_settings.characterSettings);
             }
 
             if (_set == Settings.playerStatsTitle)
             {
                 var _settings = new Settings();
-                _BB.AddRange(_settings.rulesSettings);
-                _BB.AddRange(_settings.playerSettings);
-                _BB.AddRange(_settings.characterSettings);
+                _bbs.AddRange(_settings.rulesSettings);
+                _bbs.AddRange(_settings.playerSettings);
+                _bbs.AddRange(_settings.characterSettings);
             }
 
             ModConfig _config = new ModConfig
             {
                 ModName = Settings.modName + _set,
                 SettingsVersion = 1.0,
-                Settings = _BB
+                Settings = _bbs
             };
 
             return _config;
