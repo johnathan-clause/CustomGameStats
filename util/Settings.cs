@@ -1226,5 +1226,18 @@ namespace CustomGameStats
                 RoundTo = 0
             }
         };
+
+        //util
+        public static void SoftRegister(ModConfig _config)
+        {
+            Dictionary<string, BBSetting> _dict = new Dictionary<string, BBSetting>();
+
+            foreach (BBSetting _bbs in _config.Settings)
+            {
+                _dict.Add(_bbs.Name, _bbs);
+            }
+
+            AT.SetValue(_dict, typeof(ModConfig), _config, "m_Settings");
+        }
     }
 }
