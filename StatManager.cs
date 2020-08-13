@@ -52,7 +52,7 @@ namespace CustomGameStats
             //    _currentScene = SceneManagerHelper.ActiveSceneName;
             //}
 
-            if (Global.Lobby.PlayersInLobbyCount < 1 || NetworkLevelLoader.Instance.IsGameplayPaused)
+            if (Global.Lobby.PlayersInLobbyCount < 1 || NetworkLevelLoader.Instance.IsGameplayPaused || NetworkLevelLoader.Instance.IsGameplayLoading)
             {
                 return;
             }
@@ -72,7 +72,7 @@ namespace CustomGameStats
                 }
             }
 
-            if (UpdateVitalsInfo() && !NetworkLevelLoader.Instance.IsGameplayLoading && _vitalsUpdated)
+            if (UpdateVitalsInfo() && _vitalsUpdated)
             {
                 SaveVitalsInfo();
             }
