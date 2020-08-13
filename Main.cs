@@ -46,9 +46,16 @@ namespace CustomGameStats
 
         public static bool IsHost()
         {
-            if (PhotonNetwork.isMasterClient && !PhotonNetwork.offlineMode)
+            if (!PhotonNetwork.offlineMode)
             {
-                return true;
+                if (PhotonNetwork.isMasterClient)
+                {
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
             }
             else
             {
