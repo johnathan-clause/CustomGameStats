@@ -31,7 +31,7 @@ namespace CustomGameStats
         private string _currentHostUID = "";
         private bool _sceneChanged = false;
         private bool _vitalsUpdated = false;
-        private float _lastVitalsUpdate = -5f;
+        private float _lastVitalsUpdate = -12f;
 
         internal void Awake()
         {
@@ -46,23 +46,22 @@ namespace CustomGameStats
 
         internal void Update()
         {
-            if (_currentScene != SceneManagerHelper.ActiveSceneName)
-            {
-                _sceneChanged = true;
-                _currentScene = SceneManagerHelper.ActiveSceneName;
-            }
+            //if (_currentScene != SceneManagerHelper.ActiveSceneName)
+            //{
+            //    _sceneChanged = true;
+            //    _currentScene = SceneManagerHelper.ActiveSceneName;
+            //}
 
             if (Global.Lobby.PlayersInLobbyCount < 1 || NetworkLevelLoader.Instance.IsGameplayPaused)
             {
                 return;
             }
 
-            if (_sceneChanged)
-            {
-                _sceneChanged = false;
-                _currentHostUID = "";
-                _modCharacters.Clear();
-            }
+            //if (_sceneChanged)
+            //{
+            //    _sceneChanged = false;
+            //    _currentHostUID = "";
+            //}
 
             if (splitStarted)
             {
@@ -81,9 +80,9 @@ namespace CustomGameStats
 
         public void SetSyncInfo()  //client
         {
-            Debug.Log("Setting sync info....");
             instance._currentHostUID = CharacterManager.Instance.GetWorldHostCharacter()?.UID;
-            Debug.Log("Preparing characters...");
+            instance.isInfoSynced = true;
+
             foreach (Character c in CharacterManager.Instance.Characters.Values)
             {
                 if (c == null)
@@ -196,9 +195,9 @@ namespace CustomGameStats
 
         private static void SyncHandler()  //host
         {
-            if (PhotonNetwork.isMasterClient && !PhotonNetwork.offlineMode)
+            if (Main.IsHost())
             {
-                Debug.Log("Notifying client to sync info...");
+                instance.isInfoSynced = false;
                 RPCManager.instance.Sync();
             }
         }
@@ -209,19 +208,17 @@ namespace CustomGameStats
             {
                 if (host.UID != _currentHostUID)
                 {
-                    if (PhotonNetwork.isNonMasterClientInRoom)
+                    if (!Main.IsHost())
                     {
                         if (!isInfoSynced)
                         {
                             RPCManager.instance.RequestSync();
-                            Debug.Log("Sync info updating...");
                         }
                     }
                     else
                     {
+                        Debug.Log("Update sync info !isNonMasterClient...");
                         _currentHostUID = host.UID;
-                        currentPlayerSyncInfo = Main.playerConfig;
-                        currentAiSyncInfo = Main.aiConfig;
                     }
 
                     return true;
@@ -481,12 +478,6 @@ namespace CustomGameStats
 
         private void ApplyCustomStats(Character _char, ModConfig _config, string _stackSource)
         {
-            if (_modCharacters.Contains(_char.UID))
-            {
-                Debug.Log(_char.Name + "_" + _char.UID + " already modded!");
-                return;
-            }
-
             foreach (BBSetting _setting in _config.Settings)
             {
                 if (_setting is FloatSetting _mod)
@@ -564,9 +555,9 @@ namespace CustomGameStats
         {
             bool _boo = false;
 
-            if (Time.time - _lastVitalsUpdate > 5f || _forced)
+            if (Time.time - _lastVitalsUpdate > 12f || _forced)
             {
-                foreach(string u in _modPCs)
+                foreach (string u in _modPCs)
                 {
                     Character c = CharacterManager.Instance.GetCharacter(u);
 
@@ -574,13 +565,14 @@ namespace CustomGameStats
                     {
                         Debug.Log("Character is null...");
                         _modPCs.Remove(u);
-                        return _boo;
                     }
-
-                    if (c.HealthRatio != _lastVitals.GetValueSafe(u).healthRatio && c.HealthRatio <= 1)
+                    else
                     {
-                        _boo = true;
-                        _vitalsUpdated = true;
+                        if (c.HealthRatio != _lastVitals.GetValueSafe(u).healthRatio && c.HealthRatio <= 1)
+                        {
+                            _vitalsUpdated = true;
+                            _boo = true;
+                        }
                     }
                 }
 
