@@ -23,13 +23,9 @@ namespace CustomGameStats
         private static readonly string _file = _dir + Settings.modName;
         private static readonly string _ext = ".json";
 
-        private readonly List<string> _modCharacters = new List<string>();
-        private readonly List<string> _modPCs = new List<string>();
         private readonly Dictionary<string, VitalsInfo> _lastVitals = new Dictionary<string, VitalsInfo>();
 
-        private string _currentScene = "";
         private string _currentHostUID = "";
-        private bool _sceneChanged = false;
         private bool _vitalsUpdated = false;
         private float _lastVitalsUpdate = -12f;
 
@@ -46,22 +42,18 @@ namespace CustomGameStats
 
         internal void Update()
         {
-            //if (_currentScene != SceneManagerHelper.ActiveSceneName)
-            //{
-            //    _sceneChanged = true;
-            //    _currentScene = SceneManagerHelper.ActiveSceneName;
-            //}
-
             if (Global.Lobby.PlayersInLobbyCount < 1 || NetworkLevelLoader.Instance.IsGameplayPaused || NetworkLevelLoader.Instance.IsGameplayLoading)
             {
                 return;
             }
 
-            //if (_sceneChanged)
-            //{
-            //    _sceneChanged = false;
-            //    _currentHostUID = "";
-            //}
+            if (!PhotonNetwork.offlineMode && !PhotonNetwork.isMasterClient)
+            {
+                if (UpdateSyncInfo())
+                {
+                    RPCManager.instance.RequestSync();
+                }
+            }
 
             if (splitStarted)
             {
@@ -80,30 +72,9 @@ namespace CustomGameStats
 
         public void SetSyncInfo()  //client
         {
-            instance._currentHostUID = CharacterManager.Instance.GetWorldHostCharacter()?.UID;
             instance.isInfoSynced = true;
-
-            foreach (Character c in CharacterManager.Instance.Characters.Values)
-            {
-                if (c == null)
-                {
-                    Debug.Log("Sync character null!");
-                    return;
-                }
-
-                if (c.IsAI)
-                {
-                    Debug.Log("Setting ai sync stats...");
-                    ApplyCustomStats(c, instance.currentAiSyncInfo, Settings.aiStats);
-                    Debug.Log("Ai sync info updated!");
-                }
-                else
-                {
-                    Debug.Log("Setting player sync stats...");
-                    ApplyCustomStats(c, instance.currentPlayerSyncInfo, Settings.playerStats);
-                    Debug.Log("Player sync info updated!");
-                }
-            }
+            instance._currentHostUID = CharacterManager.Instance.GetWorldHostCharacter()?.UID;
+            UpdateCustomStats(instance.currentAiSyncInfo, instance.currentPlayerSyncInfo);
         }
 
         public void SetSyncBoolInfo(string _name, bool _bool, string _flag)  //client
@@ -200,32 +171,31 @@ namespace CustomGameStats
                 instance.isInfoSynced = false;
                 RPCManager.instance.Sync();
             }
+            
+            if (PhotonNetwork.offlineMode)
+            {
+                instance.UpdateCustomStats(Main.aiConfig, Main.playerConfig);
+            }
         }
 
-        private bool UpdateSyncInfo()  //client
+        private bool UpdateSyncInfo()
         {
             if (CharacterManager.Instance.GetWorldHostCharacter() is Character host)
             {
                 if (host.UID != _currentHostUID)
                 {
-                    if (!Main.IsHost())
-                    {
-                        if (!isInfoSynced)
-                        {
-                            RPCManager.instance.RequestSync();
-                        }
-                    }
-                    else
-                    {
-                        Debug.Log("Update sync info !isNonMasterClient...");
-                        _currentHostUID = host.UID;
-                    }
-
                     return true;
                 }
                 else
                 {
-                    return false;
+                    if (!isInfoSynced)
+                    {
+                        return true;
+                    }
+                    else
+                    {
+                        return false;
+                    }
                 }
             }
             else
@@ -237,7 +207,7 @@ namespace CustomGameStats
         private IEnumerator CO_InvokeOrig(CharacterStats _instance)  //client
         {
             Debug.Log("Starting delayed invoke...");
-            while (!NetworkLevelLoader.Instance.AllPlayerDoneLoading && (currentPlayerSyncInfo == null || currentAiSyncInfo == null))
+            while (!NetworkLevelLoader.Instance.AllPlayerDoneLoading && (instance.currentPlayerSyncInfo == null || instance.currentAiSyncInfo == null))
             {
                 yield return new WaitForSeconds(1.0f);
             }
@@ -289,6 +259,7 @@ namespace CustomGameStats
             Stat[] _pro = (Stat[])AT.GetValue(typeof(CharacterStats), _stats, "m_damageProtection");
             Stat[] _res = (Stat[])AT.GetValue(typeof(CharacterStats), _stats, "m_damageResistance");
 
+            _stats.RefreshVitalMaxStat();
             _stats.RemoveStatStack(_tag, _stackSource, _mult);
 
             switch (_tag.TagName)
@@ -476,30 +447,36 @@ namespace CustomGameStats
             }
         }
 
+        private void UpdateCustomStats(ModConfig _aiConfig, ModConfig _playerConfig)
+        {
+            foreach (Character c in CharacterManager.Instance.Characters.Values)
+            {
+                if (c.IsAI)
+                {
+                    Debug.Log("Updating AI stats...");
+                    ApplyCustomStats(c, _aiConfig, Settings.aiStats);
+                }
+                else
+                {
+                    Debug.Log("Updating Player stats...");
+                    ApplyCustomStats(c, _playerConfig, Settings.playerStats);
+                }
+            }
+        }
+
         private void ApplyCustomStats(Character _char, ModConfig _config, string _stackSource)
         {
-            foreach (BBSetting _setting in _config.Settings)
+            foreach (BBSetting _bbs in _config.Settings)
             {
-                if (_setting is FloatSetting _mod)
+                if (_bbs is FloatSetting _f)
                 {
-                    Tag _tag = TagSourceManager.Instance.GetTag(AT.GetTagUID(_mod.Name));
-                    float _val = _mod.m_value;
-                    bool _mult = true;
+                    Tag _tag = TagSourceManager.Instance.GetTag(AT.GetTagUID(_f.Name));
+                    float _val = _f.m_value;
+                    bool _mult = (bool)_config.GetValue(_f.Name + Settings.modMult);
 
-                    foreach (BBSetting _switch in _config.Settings)
+                    if (_mult)
                     {
-                        if (_switch is BoolSetting _bool)
-                        {
-                            if (_bool.Name.Contains(_mod.Name + Settings.modMult))
-                            {
-                                _mult = _bool.m_value;
-
-                                if (_mult)
-                                {
-                                    _val = _mod.m_value / 100f;
-                                }
-                            }
-                        }
+                        _val = _f.m_value / 100f;
                     }
                     
                     SetCustomStat(_char.Stats, _stackSource, _tag, _val, _mult, _config);
@@ -518,7 +495,6 @@ namespace CustomGameStats
                     if (_char.IsAI)
                     {
                         UpdateVitals(_char.Stats, _ratios, _config);
-                        _modCharacters.Add(_char.UID);
                     }
                     else
                     {
@@ -529,7 +505,6 @@ namespace CustomGameStats
 
                         _lastVitals.Add(_char.UID, _ratios);
                         UpdateVitals(_char.Stats, _ratios, _config);
-                        _modPCs.Add(_char.UID);
                         SaveVitalsInfo();
                     }
                 }
@@ -557,22 +532,13 @@ namespace CustomGameStats
 
             if (Time.time - _lastVitalsUpdate > 12f || _forced)
             {
-                foreach (string u in _modPCs)
+                Debug.Log("Checking vitals info...");
+                foreach (Character c in CharacterManager.Instance.Characters.Values)
                 {
-                    Character c = CharacterManager.Instance.GetCharacter(u);
-
-                    if (c == null)
+                    if (!c.IsAI && c.HealthRatio != _lastVitals.GetValueSafe(c.UID).healthRatio && c.HealthRatio <= 1)
                     {
-                        Debug.Log("Character is null...");
-                        _modPCs.Remove(u);
-                    }
-                    else
-                    {
-                        if (c.HealthRatio != _lastVitals.GetValueSafe(u).healthRatio && c.HealthRatio <= 1)
-                        {
-                            _vitalsUpdated = true;
-                            _boo = true;
-                        }
+                        _vitalsUpdated = true;
+                        _boo = true;
                     }
                 }
 
@@ -607,40 +573,35 @@ namespace CustomGameStats
                 Directory.CreateDirectory(_dir);
             }
 
-            foreach (string u in _modPCs)
+            foreach (Character c in CharacterManager.Instance.Characters.Values)
             {
-                Character c = CharacterManager.Instance.GetCharacter(u);
-
-                if (c == null || !c.IsLocalPlayer)
+                if (!c.IsAI && c.IsLocalPlayer)
                 {
-                    _modPCs.Remove(u);
-                    return;
+                    string _path = _file + "_" + c.UID + _ext;
+                    VitalsInfo _vitals = new VitalsInfo
+                    {
+                        healthRatio = c.HealthRatio,
+                        burntHealthRatio = c.Stats.BurntHealthRatio,
+                        staminaRatio = c.StaminaRatio,
+                        burntStaminaRatio = c.Stats.BurntStaminaRatio,
+                        manaRatio = c.ManaRatio,
+                        burntManaRatio = c.Stats.BurntManaRatio
+                    };
+
+                    if (File.Exists(_path))
+                    {
+                        File.Delete(_path);
+                    }
+
+                    if (_lastVitals.ContainsKey(c.UID))
+                    {
+                        _lastVitals.Remove(c.UID);
+                    }
+
+                    _lastVitals.Add(c.UID, _vitals);
+                    _vitalsUpdated = false;
+                    File.WriteAllText(_path, JsonUtility.ToJson(_vitals));
                 }
-
-                string _path = _file + "_" + u + _ext;
-                VitalsInfo _vitals = new VitalsInfo
-                {
-                    healthRatio = c.HealthRatio,
-                    burntHealthRatio = c.Stats.BurntHealthRatio,
-                    staminaRatio = c.StaminaRatio,
-                    burntStaminaRatio = c.Stats.BurntStaminaRatio,
-                    manaRatio = c.ManaRatio,
-                    burntManaRatio = c.Stats.BurntManaRatio
-                };
-
-                if (File.Exists(_path))
-                {
-                    File.Delete(_path);
-                }
-
-                if (_lastVitals.ContainsKey(u))
-                {
-                    _lastVitals.Remove(u);
-                }
-
-                _lastVitals.Add(u, _vitals);
-                _vitalsUpdated = false;
-                File.WriteAllText(_path, JsonUtility.ToJson(_vitals));
             }
         }
 
@@ -673,9 +634,7 @@ namespace CustomGameStats
                     return true;
                 }
 
-                __instance.RefreshVitalMaxStat();
-
-                if (!PhotonNetwork.isNonMasterClientInRoom)
+                if (PhotonNetwork.isMasterClient)
                 {
                     if (!_char.IsAI)
                     {
@@ -696,35 +655,34 @@ namespace CustomGameStats
                 }
                 else
                 {
-                    if (instance.UpdateSyncInfo() || instance.currentPlayerSyncInfo == null || instance.currentAiSyncInfo == null)
+                    if (instance.currentPlayerSyncInfo == null || instance.currentAiSyncInfo == null)
                     {
-                        Debug.Log("Client requesting sync...");
                         instance.StartCoroutine(instance.CO_InvokeOrig(__instance));
                     }
-                    else
-                    {
-                        if ((!(bool)instance.currentPlayerSyncInfo.GetValue(_flag) && !(bool)instance.currentAiSyncInfo.GetValue(_flag)) || NetworkLevelLoader.Instance.IsGameplayPaused || (!(bool)_init && !(bool)_late))
-                        {
-                            return true;
-                        }
+                    //else
+                    //{
+                    //    if ((!(bool)instance.currentPlayerSyncInfo.GetValue(_flag) && !(bool)instance.currentAiSyncInfo.GetValue(_flag)) || NetworkLevelLoader.Instance.IsGameplayPaused || (!(bool)_init && !(bool)_late))
+                    //    {
+                    //        return true;
+                    //    }
 
-                        if (!_char.IsAI)
-                        {
-                            if ((bool)instance.currentPlayerSyncInfo.GetValue(_flag))
-                            {
-                                Debug.Log("Client applying synced custom player stats...");
-                                instance.ApplyCustomStats(_char, instance.currentPlayerSyncInfo, Settings.playerStats);
-                            }
-                        }
-                        else
-                        {
-                            if ((bool)instance.currentAiSyncInfo.GetValue(_flag))
-                            {
-                                Debug.Log("Client applying synced custom ai stats...");
-                                instance.ApplyCustomStats(_char, instance.currentAiSyncInfo, Settings.aiStats);
-                            }
-                        }
-                    }
+                    //    if (!_char.IsAI)
+                    //    {
+                    //        if ((bool)instance.currentPlayerSyncInfo.GetValue(_flag))
+                    //        {
+                    //            Debug.Log("Client applying synced custom player stats...");
+                    //            instance.ApplyCustomStats(_char, instance.currentPlayerSyncInfo, Settings.playerStats);
+                    //        }
+                    //    }
+                    //    else
+                    //    {
+                    //        if ((bool)instance.currentAiSyncInfo.GetValue(_flag))
+                    //        {
+                    //            Debug.Log("Client applying synced custom ai stats...");
+                    //            instance.ApplyCustomStats(_char, instance.currentAiSyncInfo, Settings.aiStats);
+                    //        }
+                    //    }
+                    //}
                 }
 
                 return false;
