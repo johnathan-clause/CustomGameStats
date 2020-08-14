@@ -15,18 +15,18 @@ namespace CustomGameStats
         public Character splitPlayer;
         public ModConfig currentPlayerSyncInfo;
         public ModConfig currentAiSyncInfo;
-        public Action syncHandler = SyncHandler;
         public bool splitStarted = false;
-        public bool isInfoSynced = false;
+        public bool isPlayerInfoSynced = false;
+        public bool isAiInfoSynced = false;
 
         private static readonly string _dir = @"Mods\ModConfigs\";
         private static readonly string _file = _dir + Settings.modName;
         private static readonly string _ext = ".json";
 
         private readonly Dictionary<string, VitalsInfo> _lastVitals = new Dictionary<string, VitalsInfo>();
+        private readonly Action _playerSyncHandler = PlayerSyncHandler;
+        private readonly Action _aiSyncHandler = AiSyncHandler;
 
-        private Action _aiSyncHandler;
-        private Action _playerSyncHandler;
         private string _currentHostUID = "";
         private bool _vitalsUpdated = false;
         private float _lastVitalsUpdate = -12f;
@@ -38,8 +38,8 @@ namespace CustomGameStats
 
         internal void Start()
         {
-            Main.playerConfig.OnSettingsSaved += syncHandler;
-            Main.aiConfig.OnSettingsSaved += syncHandler;
+            Main.playerConfig.OnSettingsSaved += _playerSyncHandler;
+            Main.aiConfig.OnSettingsSaved += _aiSyncHandler;
         }
 
         internal void Update()
@@ -72,11 +72,18 @@ namespace CustomGameStats
             }
         }
 
-        public void SetSyncInfo()  //client
+        public void SetPlayerSyncInfo()  //client
         {
-            instance.isInfoSynced = true;
+            instance.isPlayerInfoSynced = true;
             instance._currentHostUID = CharacterManager.Instance.GetWorldHostCharacter()?.UID;
-            UpdateCustomStats(instance.currentAiSyncInfo, instance.currentPlayerSyncInfo);
+            UpdatePlayerCustomStats(instance.currentPlayerSyncInfo);
+        }
+
+        public void SetAiSyncInfo()  //client
+        {
+            instance.isAiInfoSynced = true;
+            instance._currentHostUID = CharacterManager.Instance.GetWorldHostCharacter()?.UID;
+            UpdateAiCustomStats(instance.currentAiSyncInfo);
         }
 
         public void SetSyncBoolInfo(string _name, bool _bool, string _flag)  //client
@@ -139,6 +146,34 @@ namespace CustomGameStats
             }
         }
 
+        private static void PlayerSyncHandler()
+        {
+            if (Main.IsHost())
+            {
+                instance.isPlayerInfoSynced = false;
+                RPCManager.instance.PlayerSync();
+            }
+
+            if (PhotonNetwork.offlineMode)
+            {
+                instance.UpdatePlayerCustomStats(Main.playerConfig);
+            }
+        }
+
+        private static void AiSyncHandler()
+        {
+            if (Main.IsHost())
+            {
+                instance.isAiInfoSynced = false;
+                RPCManager.instance.AiSync();
+            }
+
+            if (PhotonNetwork.offlineMode)
+            {
+                instance.UpdateAiCustomStats(Main.aiConfig);
+            }
+        }
+
         private static float Modify(bool _op, float _base, float _value, float _limiter, ModConfig _config)
         {
             if ((bool)_config.GetValue(Settings.gameBehaviour))
@@ -175,29 +210,6 @@ namespace CustomGameStats
             }
         }
 
-        private static void SyncHandler()  //host
-        {
-            if (Main.IsHost())
-            {
-                instance.isInfoSynced = false;
-                RPCManager.instance.Sync();
-            }
-            
-            if (PhotonNetwork.offlineMode)
-            {
-                instance.UpdateCustomStats(Main.aiConfig, Main.playerConfig);
-            }
-        }
-
-        private static void AiSyncHandler()
-        {
-
-        }
-
-        private static void PlayerSyncHandler()
-        {
-
-        }
         private bool UpdateSyncInfo()
         {
             if (CharacterManager.Instance.GetWorldHostCharacter() is Character host)
@@ -208,7 +220,7 @@ namespace CustomGameStats
                 }
                 else
                 {
-                    if (!isInfoSynced)
+                    if (!isAiInfoSynced || !isPlayerInfoSynced)
                     {
                         return true;
                     }
@@ -224,53 +236,78 @@ namespace CustomGameStats
             }
         }
 
-        private IEnumerator CO_InvokeOrig(CharacterStats _instance)  //client
+        private void UpdatePlayerCustomStats(ModConfig _config)
         {
-            Debug.Log("Starting delayed invoke...");
-            while (!NetworkLevelLoader.Instance.AllPlayerDoneLoading && (instance.currentPlayerSyncInfo == null || instance.currentAiSyncInfo == null))
+            foreach (Character c in CharacterManager.Instance.Characters.Values)
             {
-                yield return new WaitForSeconds(1.0f);
-            }
-            
-            if (instance.currentPlayerSyncInfo == null || instance.currentAiSyncInfo == null || !(bool)instance.currentPlayerSyncInfo.GetValue(Settings.toggleSwitch) || !(bool)instance.currentAiSyncInfo.GetValue(Settings.toggleSwitch))
-            {
-                try
+                if (!c.IsAI && (bool)_config.GetValue(Settings.toggleSwitch))
                 {
-                    Debug.Log("Trying reverse patch...");
-                    CharacterStats_ApplyCoopStats.ReversePatch(_instance);
+                    ApplyCustomStats(c, _config, Settings.playerStats);
                 }
-                catch { }
             }
         }
 
-        private void UpdateVitals(CharacterStats _stats, VitalsInfo _ratios, ModConfig _config)
+        private void UpdateAiCustomStats(ModConfig _config)
         {
-            float _hp, _hpb, _sp, _spb, _mp, _mpb;
-            _stats.RefreshVitalMaxStat();
-            if (!(bool)_config.GetValue(Settings.gameBehaviour))
+            foreach (Character c in CharacterManager.Instance.Characters.Values)
             {
-                _hp = SaveManager.Instance.GetCharacterSave(_stats.GetComponent<Character>().UID).PSave.Health;
-                _hpb = SaveManager.Instance.GetCharacterSave(_stats.GetComponent<Character>().UID).PSave.BurntHealth;
-                _sp = SaveManager.Instance.GetCharacterSave(_stats.GetComponent<Character>().UID).PSave.Stamina;
-                _spb = SaveManager.Instance.GetCharacterSave(_stats.GetComponent<Character>().UID).PSave.BurntStamina;
-                _mp = SaveManager.Instance.GetCharacterSave(_stats.GetComponent<Character>().UID).PSave.Mana;
-                _mpb = SaveManager.Instance.GetCharacterSave(_stats.GetComponent<Character>().UID).PSave.BurntMana;
+                if (c.IsAI && (bool)_config.GetValue(Settings.toggleSwitch))
+                {
+                    ApplyCustomStats(c, _config, Settings.aiStats);
+                }
             }
-            else
+        }
+
+        private void ApplyCustomStats(Character _char, ModConfig _config, string _stackSource)
+        {
+            foreach (BBSetting _bbs in _config.Settings)
             {
-                _hp = _stats.MaxHealth * _ratios.healthRatio;
-                _hpb = _stats.MaxHealth * _ratios.burntHealthRatio;
-                _sp = _stats.MaxStamina * _ratios.staminaRatio;
-                _spb = _stats.MaxStamina * _ratios.burntStaminaRatio;
-                _mp = _stats.MaxMana * _ratios.manaRatio;
-                _mpb = _stats.MaxMana * _ratios.burntManaRatio;
+                if (_bbs is FloatSetting _f)
+                {
+                    Tag _tag = TagSourceManager.Instance.GetTag(AT.GetTagUID(_f.Name));
+                    float _val = _f.m_value;
+                    bool _mult = (bool)_config.GetValue(_f.Name + Settings.modMult);
+
+                    if (_mult)
+                    {
+                        _val = _f.m_value / 100f;
+                    }
+
+                    SetCustomStat(_char.Stats, _stackSource, _tag, _val, _mult, _config);
+
+                    VitalsInfo _ratios = LoadVitalsInfo(_char.UID) ?? new VitalsInfo
+                    {
+                        healthRatio = _char.HealthRatio,
+                        burntHealthRatio = _char.Stats.BurntHealthRatio,
+                        staminaRatio = _char.StaminaRatio,
+                        burntStaminaRatio = _char.Stats.BurntStaminaRatio,
+                        manaRatio = _char.ManaRatio,
+                        burntManaRatio = _char.Stats.BurntManaRatio
+                    };
+
+
+                    if (_char.IsAI)
+                    {
+                        UpdateVitals(_char.Stats, _ratios, _config);
+                    }
+                    else
+                    {
+                        if (_lastVitals.ContainsKey(_char.UID))
+                        {
+                            _lastVitals.Remove(_char.UID);
+                        }
+
+                        _lastVitals.Add(_char.UID, _ratios);
+                        UpdateVitals(_char.Stats, _ratios, _config);
+                        SaveVitalsInfo();
+                        if (_f.Name == "MaxHealth")
+                        {
+                            Debug.Log("MaxHealth: " + _char.Stats.MaxHealth);
+                            Debug.Log("BurntHealth: " + _char.Stats.BurntHealth);
+                        }
+                    }
+                }
             }
-            _stats.SetHealth(_hp);
-            AT.SetValue(_hpb, typeof(CharacterStats), _stats, "m_burntHealth");
-            AT.SetValue(_sp, typeof(CharacterStats), _stats, "m_stamina");
-            AT.SetValue(_spb, typeof(CharacterStats), _stats, "m_burntStamina");
-            _stats.SetMana(_mp);
-            AT.SetValue(_mpb, typeof(CharacterStats), _stats, "m_burntMana");
         }
 
         private void SetCustomStat(CharacterStats _stats, string _stackSource, Tag _tag, float _val, bool _mult, ModConfig _config)
@@ -473,74 +510,6 @@ namespace CustomGameStats
             }
         }
 
-        private void UpdateCustomStats(ModConfig _aiConfig, ModConfig _playerConfig)
-        {
-            foreach (Character c in CharacterManager.Instance.Characters.Values)
-            {
-                if (c.IsAI)
-                {
-                    ApplyCustomStats(c, _aiConfig, Settings.aiStats);
-                }
-                else
-                {
-                    Debug.Log("Updating Player stats...");
-                    ApplyCustomStats(c, _playerConfig, Settings.playerStats);
-                }
-            }
-        }
-
-        private void ApplyCustomStats(Character _char, ModConfig _config, string _stackSource)
-        {
-            foreach (BBSetting _bbs in _config.Settings)
-            {
-                if (_bbs is FloatSetting _f)
-                {
-                    Tag _tag = TagSourceManager.Instance.GetTag(AT.GetTagUID(_f.Name));
-                    float _val = _f.m_value;
-                    bool _mult = (bool)_config.GetValue(_f.Name + Settings.modMult);
-
-                    if (_mult)
-                    {
-                        _val = _f.m_value / 100f;
-                    }
-
-                    SetCustomStat(_char.Stats, _stackSource, _tag, _val, _mult, _config);
-
-                    VitalsInfo _ratios = LoadVitalsInfo(_char.UID) ?? new VitalsInfo
-                    {
-                        healthRatio = _char.HealthRatio,
-                        burntHealthRatio = _char.Stats.BurntHealthRatio,
-                        staminaRatio = _char.StaminaRatio,
-                        burntStaminaRatio = _char.Stats.BurntStaminaRatio,
-                        manaRatio = _char.ManaRatio,
-                        burntManaRatio = _char.Stats.BurntManaRatio
-                    };
-
-                    
-                    if (_char.IsAI)
-                    {
-                        UpdateVitals(_char.Stats, _ratios, _config);
-                    }
-                    else
-                    {
-                        if (_lastVitals.ContainsKey(_char.UID))
-                        {
-                            _lastVitals.Remove(_char.UID);
-                        }
-
-                        _lastVitals.Add(_char.UID, _ratios);
-                        UpdateVitals(_char.Stats, _ratios, _config);
-                        SaveVitalsInfo();
-                        if (_f.Name == "MaxHealth")
-                        {
-                            Debug.Log("MaxHealth: " + _char.Stats.MaxHealth);
-                            Debug.Log("BurntHealth: " + _char.Stats.BurntHealth);
-                        }
-                    }
-                }
-            }
-        }
-
         private bool SplitPlayerInstantiated()
         {
             bool _boo = false;
@@ -556,6 +525,36 @@ namespace CustomGameStats
             return _boo;
         }
 
+        private void UpdateVitals(CharacterStats _stats, VitalsInfo _ratios, ModConfig _config)
+        {
+            float _hp, _hpb, _sp, _spb, _mp, _mpb;
+            _stats.RefreshVitalMaxStat();
+            if (!(bool)_config.GetValue(Settings.gameBehaviour))
+            {
+                _hp = SaveManager.Instance.GetCharacterSave(_stats.GetComponent<Character>().UID).PSave.Health;
+                _hpb = SaveManager.Instance.GetCharacterSave(_stats.GetComponent<Character>().UID).PSave.BurntHealth;
+                _sp = SaveManager.Instance.GetCharacterSave(_stats.GetComponent<Character>().UID).PSave.Stamina;
+                _spb = SaveManager.Instance.GetCharacterSave(_stats.GetComponent<Character>().UID).PSave.BurntStamina;
+                _mp = SaveManager.Instance.GetCharacterSave(_stats.GetComponent<Character>().UID).PSave.Mana;
+                _mpb = SaveManager.Instance.GetCharacterSave(_stats.GetComponent<Character>().UID).PSave.BurntMana;
+            }
+            else
+            {
+                _hp = _stats.MaxHealth * _ratios.healthRatio;
+                _hpb = _stats.MaxHealth * _ratios.burntHealthRatio;
+                _sp = _stats.MaxStamina * _ratios.staminaRatio;
+                _spb = _stats.MaxStamina * _ratios.burntStaminaRatio;
+                _mp = _stats.MaxMana * _ratios.manaRatio;
+                _mpb = _stats.MaxMana * _ratios.burntManaRatio;
+            }
+            _stats.SetHealth(_hp);
+            AT.SetValue(_hpb, typeof(CharacterStats), _stats, "m_burntHealth");
+            AT.SetValue(_sp, typeof(CharacterStats), _stats, "m_stamina");
+            AT.SetValue(_spb, typeof(CharacterStats), _stats, "m_burntStamina");
+            _stats.SetMana(_mp);
+            AT.SetValue(_mpb, typeof(CharacterStats), _stats, "m_burntMana");
+        }
+
         private bool UpdateVitalsInfo(bool _forced = false)
         {
             bool _boo = false;
@@ -565,7 +564,7 @@ namespace CustomGameStats
                 Debug.Log("Checking vitals info...");
                 foreach (Character c in CharacterManager.Instance.Characters.Values)
                 {
-                    if (!c.IsAI && c.HealthRatio != _lastVitals.GetValueSafe(c.UID).healthRatio && c.HealthRatio <= 1)
+                    if (c != null && !c.IsAI && c.HealthRatio != _lastVitals.GetValueSafe(c.UID).healthRatio && c.HealthRatio <= 1)
                     {
                         _vitalsUpdated = true;
                         _boo = true;
@@ -632,6 +631,25 @@ namespace CustomGameStats
                     _vitalsUpdated = false;
                     File.WriteAllText(_path, JsonUtility.ToJson(_vitals));
                 }
+            }
+        }
+
+        private IEnumerator CO_InvokeOrig(CharacterStats _instance)  //client
+        {
+            Debug.Log("Starting delayed invoke...");
+            while (!NetworkLevelLoader.Instance.AllPlayerDoneLoading && (instance.currentPlayerSyncInfo == null || instance.currentAiSyncInfo == null))
+            {
+                yield return new WaitForSeconds(1.0f);
+            }
+
+            if (instance.currentPlayerSyncInfo == null || instance.currentAiSyncInfo == null || !(bool)instance.currentPlayerSyncInfo.GetValue(Settings.toggleSwitch) || !(bool)instance.currentAiSyncInfo.GetValue(Settings.toggleSwitch))
+            {
+                try
+                {
+                    Debug.Log("Trying reverse patch...");
+                    CharacterStats_ApplyCoopStats.ReversePatch(_instance);
+                }
+                catch { }
             }
         }
 

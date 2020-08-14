@@ -31,10 +31,16 @@ namespace CustomGameStats
             photonView.RPC("RequestSyncRPC", PhotonNetwork.masterClient, new object[0]);
         }
 
-        public void Sync() //host
+        public void PlayerSync() //host
         {
             Debug.Log("RPC sending client notification...");
-            photonView.RPC("SyncRPC", PhotonTargets.All, new object[0]);
+            photonView.RPC("PlayerSyncRPC", PhotonTargets.All, new object[0]);
+        }
+
+        public void AiSync() //host
+        {
+            Debug.Log("RPC sending client notification...");
+            photonView.RPC("AiSyncRPC", PhotonTargets.All, new object[0]);
         }
 
         [PunRPC]
@@ -134,16 +140,28 @@ namespace CustomGameStats
             }
             Debug.Log("Players done loading for delayed send...");
             Debug.Log("Checking for conditions to send...");
-            if (!PhotonNetwork.isNonMasterClientInRoom && !StatManager.instance.isInfoSynced)
+            if (!PhotonNetwork.isNonMasterClientInRoom)
             {
-                Debug.Log("Conditions met, stating send...");
-                SendSyncSettings(Main.playerConfig, "player");
-                SendSyncSettings(Main.aiConfig, "ai");
-                Debug.Log("Iteration finished...");
-                Debug.Log("Attempting to finalize sync...");
-                photonView.RPC("SetSyncInfoRPC", PhotonTargets.All, new object[0]);
+                if (!StatManager.instance.isAiInfoSynced)
+                {
+                    Debug.Log("Conditions met, starting ai send...");
+                    SendSyncSettings(Main.aiConfig, "ai");
+                    Debug.Log("Iteration finished...");
+                    photonView.RPC("SetAiSyncInfoRPC", PhotonTargets.All, new object[0]);
+                    StatManager.instance.isAiInfoSynced = true;
+                    Debug.Log("Attempting to finalize sync...");
+                }
+
+                if (!StatManager.instance.isPlayerInfoSynced)
+                {
+                    Debug.Log("Conditions met, starting player send...");
+                    SendSyncSettings(Main.playerConfig, "player");
+                    Debug.Log("Iteration finished...");
+                    photonView.RPC("SetPlayerSyncInfoRPC", PhotonTargets.All, new object[0]);
+                    StatManager.instance.isPlayerInfoSynced = true;
+                    Debug.Log("Attempting to finalize sync...");
+                }
                 Debug.Log("Delayed process ending...");
-                StatManager.instance.isInfoSynced = true;
             }
         }
 
@@ -166,21 +184,40 @@ namespace CustomGameStats
         }
 
         [PunRPC]
-        private void SetSyncInfoRPC()  //client
-        {
-            if (PhotonNetwork.isNonMasterClientInRoom)
-            {
-                StatManager.instance.SetSyncInfo();
-            }
-        }
-
-        [PunRPC]
-        private void SyncRPC()  //client
+        private void PlayerSyncRPC()  //client
         {
             if (PhotonNetwork.isNonMasterClientInRoom)
             {
                 Debug.Log("Recieved sync notification...");
-                StatManager.instance.isInfoSynced = false;
+                StatManager.instance.isPlayerInfoSynced = false;
+            }
+        }
+
+        [PunRPC]
+        private void SetPlayerSyncInfoRPC()  //client
+        {
+            if (PhotonNetwork.isNonMasterClientInRoom)
+            {
+                StatManager.instance.SetPlayerSyncInfo();
+            }
+        }
+
+        [PunRPC]
+        private void AiSyncRPC()  //client
+        {
+            if (PhotonNetwork.isNonMasterClientInRoom)
+            {
+                Debug.Log("Recieved sync notification...");
+                StatManager.instance.isAiInfoSynced = false;
+            }
+        }
+
+        [PunRPC]
+        private void SetAiSyncInfoRPC()  //client
+        {
+            if (PhotonNetwork.isNonMasterClientInRoom)
+            {
+                StatManager.instance.SetAiSyncInfo();
             }
         }
     }
