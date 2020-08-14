@@ -47,6 +47,7 @@ namespace CustomGameStats
             Stat _stat = (Stat)GetValue(typeof(CharacterStats), _stats, _field);
             return _stat.CurrentValue;
         }
+
         public static float GetPlayerStat(PlayerCharacterStats _stats, string _field)
         {
             Stat _stat = (Stat)GetValue(typeof(PlayerCharacterStats), _stats, _field);
