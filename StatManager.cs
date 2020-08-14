@@ -25,6 +25,8 @@ namespace CustomGameStats
 
         private readonly Dictionary<string, VitalsInfo> _lastVitals = new Dictionary<string, VitalsInfo>();
 
+        private Action _aiSyncHandler;
+        private Action _playerSyncHandler;
         private string _currentHostUID = "";
         private bool _vitalsUpdated = false;
         private float _lastVitalsUpdate = -12f;
@@ -107,41 +109,49 @@ namespace CustomGameStats
         {
             if (_op)
             {
+                Debug.Log("Calculating percentage modifier....");
                 if (_value < 0)
                 {
+                    Debug.Log("Value below zero...");
                     if ((_limiter - _base) / _base > _value)
                     {
+                        Debug.Log("applying limiter to negative value...");
                         return (_limiter - _base) / _base;
                     }
                     else
                     {
+                        Debug.Log("returning negative value...");
                         return _value;
                     }
                 }
                 else
                 {
+                    Debug.Log("Value greater than zero, returning value...");
                     return _value;
                 }
             }
             else
             {
+                Debug.Log("Calculating flat modifier...");
+                Debug.Log("Limiter: " + _limiter);
+                Debug.Log("Base: " + _base);
                 return Math.Max(_limiter - _base, _value);
             }
         }
 
         private static float Modify(bool _op, float _base, float _value, float _limiter, ModConfig _config)
         {
-            bool _strict = (bool)_config.GetValue(Settings.strictMinimum);
-            bool _behaviour = (bool)_config.GetValue(Settings.gameBehaviour);
-
-            if (_behaviour)
+            if ((bool)_config.GetValue(Settings.gameBehaviour))
             {
+                Debug.Log("Behaviour set, proceeding...");
                 return ModifyLogic(_op, _base, _value, _limiter);
             }
             else
             {
-                if (_strict)
+                if ((bool)_config.GetValue(Settings.strictMinimum))
                 {
+                    Debug.Log("Behaviour not set...");
+                    Debug.Log("Strict set, proceeding...");
                     switch (_limiter)
                     {
                         case 50f:
@@ -159,6 +169,7 @@ namespace CustomGameStats
                 }
                 else
                 {
+                    Debug.Log("Behaviour and Strict not set, proceeding...");
                     return _value;
                 }
             }
@@ -178,6 +189,15 @@ namespace CustomGameStats
             }
         }
 
+        private static void AiSyncHandler()
+        {
+
+        }
+
+        private static void PlayerSyncHandler()
+        {
+
+        }
         private bool UpdateSyncInfo()
         {
             if (CharacterManager.Instance.GetWorldHostCharacter() is Character host)
@@ -259,12 +279,14 @@ namespace CustomGameStats
             Stat[] _pro = (Stat[])AT.GetValue(typeof(CharacterStats), _stats, "m_damageProtection");
             Stat[] _res = (Stat[])AT.GetValue(typeof(CharacterStats), _stats, "m_damageResistance");
 
-            _stats.RefreshVitalMaxStat();
+            _stats.RemoveStatStack(_tag, _stackSource, !_mult);
             _stats.RemoveStatStack(_tag, _stackSource, _mult);
+            _stats.RefreshVitalMaxStat();
 
             switch (_tag.TagName)
             {
                 case "MaxHealth":
+                    Debug.Log("Base MaxHealth: " + AT.GetCharacterStat(_stats, "m_maxHealthStat"));
                     _stats.AddStatStack(_tag, new StatStack(_stackSource, Modify(_mult, AT.GetCharacterStat(_stats, "m_maxHealthStat"), _val, CharacterStats.MIN_MAXHEALTH_LIMIT, _config)), _mult);
                     break;
                 case "HealthRegen":
@@ -279,7 +301,8 @@ namespace CustomGameStats
                 case "StaminaRegen":
                     _stats.AddStatStack(_tag, new StatStack(_stackSource, Modify(_mult, AT.GetCharacterStat(_stats, "m_staminaRegen"), _val, Settings.minimumMod, _config)), _mult);
                     break;
-                case "StaminaUse": case "StaminaCostReduction":
+                case "StaminaUse":
+                case "StaminaCostReduction":
                     _stats.AddStatStack(_tag, new StatStack(_stackSource, Modify(_mult, AT.GetCharacterStat(_stats, "m_staminaUseModifiers"), _val, Settings.minimum, _config)), _mult);
                     break;
                 case "StaminaBurn":
@@ -309,10 +332,12 @@ namespace CustomGameStats
                 case "EtherealDamage":
                     _stats.AddStatStack(_tag, new StatStack(_stackSource, Modify(_mult, _dmg[1].CurrentValue, _val, Settings.minimum, _config)), _mult);
                     break;
-                case "DecayDamage": case "DarkDamage":
+                case "DecayDamage":
+                case "DarkDamage":
                     _stats.AddStatStack(_tag, new StatStack(_stackSource, Modify(_mult, _dmg[2].CurrentValue, _val, Settings.minimum, _config)), _mult);
                     break;
-                case "ElectricDamage": case "LightDamage":
+                case "ElectricDamage":
+                case "LightDamage":
                     _stats.AddStatStack(_tag, new StatStack(_stackSource, Modify(_mult, _dmg[3].CurrentValue, _val, Settings.minimum, _config)), _mult);
                     break;
                 case "FrostDamage":
@@ -348,7 +373,8 @@ namespace CustomGameStats
                 case "LightProtection":
                     _stats.AddStatStack(_tag, new StatStack(_stackSource, Modify(_mult, _pro[7].CurrentValue, _val, Settings.minimum, _config)), _mult);
                     break;
-                case "AllResistances": case "DamageResistance":
+                case "AllResistances":
+                case "DamageResistance":
                     _stats.AddStatStack(_tag, new StatStack(_stackSource, Modify(_mult, AT.GetCharacterStat(_stats, "m_resistanceModifiers"), _val, Settings.minimum, _config)), _mult);
                     break;
                 case "PhysicalResistance":
@@ -453,7 +479,6 @@ namespace CustomGameStats
             {
                 if (c.IsAI)
                 {
-                    Debug.Log("Updating AI stats...");
                     ApplyCustomStats(c, _aiConfig, Settings.aiStats);
                 }
                 else
@@ -478,7 +503,7 @@ namespace CustomGameStats
                     {
                         _val = _f.m_value / 100f;
                     }
-                    
+
                     SetCustomStat(_char.Stats, _stackSource, _tag, _val, _mult, _config);
 
                     VitalsInfo _ratios = LoadVitalsInfo(_char.UID) ?? new VitalsInfo
@@ -506,6 +531,11 @@ namespace CustomGameStats
                         _lastVitals.Add(_char.UID, _ratios);
                         UpdateVitals(_char.Stats, _ratios, _config);
                         SaveVitalsInfo();
+                        if (_f.Name == "MaxHealth")
+                        {
+                            Debug.Log("MaxHealth: " + _char.Stats.MaxHealth);
+                            Debug.Log("BurntHealth: " + _char.Stats.BurntHealth);
+                        }
                     }
                 }
             }
