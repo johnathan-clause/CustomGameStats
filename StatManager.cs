@@ -555,16 +555,16 @@ namespace CustomGameStats
             AT.SetValue(_mpb, typeof(CharacterStats), _stats, "m_burntMana");
         }
 
-        private bool UpdateVitalsInfo(bool _forced = false)
+        private bool UpdateVitalsInfo()
         {
             bool _boo = false;
 
-            if (Time.time - _lastVitalsUpdate > 12f || _forced)
+            if (Time.time - _lastVitalsUpdate > 12f)
             {
                 Debug.Log("Checking vitals info...");
                 foreach (Character c in CharacterManager.Instance.Characters.Values)
                 {
-                    if (c != null && !c.IsAI && c.HealthRatio != _lastVitals.GetValueSafe(c.UID).healthRatio && c.HealthRatio <= 1)
+                    if (_lastVitals.ContainsKey(c.UID) && c.HealthRatio != _lastVitals.GetValueSafe(c.UID).healthRatio && c.HealthRatio <= 1)
                     {
                         _vitalsUpdated = true;
                         _boo = true;
