@@ -12,10 +12,8 @@ namespace CustomGameStats
     {
         public static StatManager instance;
 
-        public Character splitPlayer;
         public ModConfig currentPlayerSyncInfo;
         public ModConfig currentAiSyncInfo;
-        public bool splitStarted = false;
         public bool isPlayerInfoSynced = false;
         public bool isAiInfoSynced = false;
 
@@ -29,6 +27,7 @@ namespace CustomGameStats
 
         private string _currentHostUID = "";
         private bool _vitalsUpdated = false;
+        private bool _checkSplit = false;
         private float _lastVitalsUpdate = -12f;
 
         internal void Awake()
@@ -57,13 +56,17 @@ namespace CustomGameStats
                 }
             }
 
-            if (splitStarted)
+            if (Global.Lobby.PlayersInLobbyCount > 1)
             {
-                if (SplitPlayerInstantiated())
+                if (_checkSplit)
                 {
-                    splitStarted = false;
-                    CharacterStats_ApplyCoopStats.Prefix(splitPlayer.Stats);
+                    _checkSplit = false;
+                    UpdatePlayerCustomStats(Main.playerConfig);
                 }
+            }
+            else
+            {
+                _checkSplit = true;
             }
 
             if (UpdateVitalsInfo() && _vitalsUpdated)
@@ -510,21 +513,6 @@ namespace CustomGameStats
             }
         }
 
-        private bool SplitPlayerInstantiated()
-        {
-            bool _boo = false;
-
-            for (int i = 0; i < SplitScreenManager.Instance.LocalPlayers.Count; i++)
-            {
-                if (!SplitScreenManager.Instance.LocalPlayers[i].AssignedCharacter.Name.Contains("Prefab") && splitStarted)
-                {
-                    _boo = true;
-                }
-            }
-
-            return _boo;
-        }
-
         private void UpdateVitals(CharacterStats _stats, VitalsInfo _ratios, ModConfig _config)
         {
             float _hp, _hpb, _sp, _spb, _mp, _mpb;
@@ -665,20 +653,10 @@ namespace CustomGameStats
             [HarmonyPrefix]
             public static bool Prefix(CharacterStats __instance)
             {
-                var _char = __instance.GetComponent<Character>();
-                var _flag = Settings.toggleSwitch;
-                var _init = AT.GetValue(typeof(Character), _char, "m_startInitDone");
-                var _late = AT.GetValue(typeof(Character), _char, "m_lateInitDone");
+                Character _char = __instance.GetComponent<Character>();
 
-                if ((!(bool)Main.playerConfig.GetValue(_flag) && !(bool)Main.aiConfig.GetValue(_flag)) || NetworkLevelLoader.Instance.IsGameplayPaused || (!(bool)_init && !(bool)_late))
+                if ((!(bool)Main.playerConfig.GetValue(Settings.toggleSwitch) && !(bool)Main.aiConfig.GetValue(Settings.toggleSwitch)) || NetworkLevelLoader.Instance.IsGameplayPaused || (!_char.IsStartInitDone || !_char.IsLateInitDone))
                 {
-                    return true;
-                }
-
-                if (SplitScreenManager.Instance.IsSplitActive && _char.Name.Contains("Prefab"))
-                {
-                    instance.splitPlayer = _char;
-                    instance.splitStarted = true;
                     return true;
                 }
 
@@ -686,7 +664,7 @@ namespace CustomGameStats
                 {
                     if (!_char.IsAI)
                     {
-                        if ((bool)Main.playerConfig.GetValue(_flag))
+                        if ((bool)Main.playerConfig.GetValue(Settings.toggleSwitch))
                         {
                             Debug.Log("Applying custom stats to players...");
                             instance.ApplyCustomStats(_char, Main.playerConfig, Settings.playerStats);
@@ -694,7 +672,7 @@ namespace CustomGameStats
                     }
                     else
                     {
-                        if ((bool)Main.aiConfig.GetValue(_flag))
+                        if ((bool)Main.aiConfig.GetValue(Settings.toggleSwitch))
                         {
                             Debug.Log("Applying custom stats to ai...");
                             instance.ApplyCustomStats(_char, Main.aiConfig, Settings.aiStats);
