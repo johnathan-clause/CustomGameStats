@@ -151,7 +151,7 @@ namespace CustomGameStats
 
         private static void PlayerSyncHandler()
         {
-            if (Main.IsHost())
+            if (!PhotonNetwork.offlineMode && PhotonNetwork.isMasterClient)
             {
                 instance.isPlayerInfoSynced = false;
                 RPCManager.instance.PlayerSync();
@@ -165,7 +165,7 @@ namespace CustomGameStats
 
         private static void AiSyncHandler()
         {
-            if (Main.IsHost())
+            if (!PhotonNetwork.offlineMode && PhotonNetwork.isMasterClient)
             {
                 instance.isAiInfoSynced = false;
                 RPCManager.instance.AiSync();

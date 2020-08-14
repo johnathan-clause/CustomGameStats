@@ -44,25 +44,6 @@ namespace CustomGameStats
             Logger.Log(LogLevel.Message, NAME + " " + VERSION + " instantiated!");
         }
 
-        public static bool IsHost()
-        {
-            if (!PhotonNetwork.offlineMode)
-            {
-                if (PhotonNetwork.isMasterClient)
-                {
-                    return true;
-                }
-                else
-                {
-                    return false;
-                }
-            }
-            else
-            {
-                return false;
-            }
-        }
-
         private ModConfig SetupConfig(string _set)
         {
             List<BBSetting> _bbs = new List<BBSetting>();
