@@ -162,7 +162,6 @@ namespace CustomGameStats
         {
             if (!PhotonNetwork.offlineMode && PhotonNetwork.isMasterClient)
             {
-                Debug.Log("Host changed player settings...");
                 instance.isPlayerInfoSynced = false;
                 RPCManager.instance.PlayerSync();
             }
@@ -174,7 +173,6 @@ namespace CustomGameStats
         {
             if (!PhotonNetwork.offlineMode && PhotonNetwork.isMasterClient)
             {
-                Debug.Log("Host changed ai settings...");
                 instance.isAiInfoSynced = false;
                 RPCManager.instance.AiSync();
             }
@@ -293,10 +291,6 @@ namespace CustomGameStats
                     if (_char.IsAI)
                     {
                         UpdateVitals(_char.Stats, _ratios, _config);
-                        if (_f.Name == "MaxHealth")
-                        {
-                            Debug.Log("Enemy " + _char.Name + "_" + _char.UID + "'s maxhp: " + _char.Stats.MaxHealth);
-                        }
                     }
                     else
                     {
@@ -544,7 +538,6 @@ namespace CustomGameStats
 
             if (Time.time - _lastVitalsUpdate > 12f)
             {
-                Debug.Log("Checking vitals info...");
                 foreach (Character c in CharacterManager.Instance.Characters.Values)
                 {
                     if (_lastVitals.ContainsKey(c.UID) && c.HealthRatio != _lastVitals.GetValueSafe(c.UID).healthRatio && c.HealthRatio <= 1)
@@ -619,7 +612,6 @@ namespace CustomGameStats
 
         private IEnumerator CO_InvokeOrig(CharacterStats _instance)  //client
         {
-            Debug.Log("Starting delayed invoke...");
             while (!NetworkLevelLoader.Instance.AllPlayerDoneLoading && (instance.currentPlayerSyncInfo == null || instance.currentAiSyncInfo == null))
             {
                 yield return new WaitForSeconds(1.0f);
@@ -629,7 +621,6 @@ namespace CustomGameStats
             {
                 try
                 {
-                    Debug.Log("Trying reverse patch...");
                     CharacterStats_ApplyCoopStats.ReversePatch(_instance);
                 }
                 catch { }
@@ -661,7 +652,6 @@ namespace CustomGameStats
                     {
                         if ((bool)Main.playerConfig.GetValue(Settings.toggleSwitch))
                         {
-                            Debug.Log("Applying custom stats to players...");
                             instance.ApplyCustomStats(_char, Main.playerConfig, Settings.playerStats);
                         }
                     }
@@ -669,7 +659,6 @@ namespace CustomGameStats
                     {
                         if ((bool)Main.aiConfig.GetValue(Settings.toggleSwitch))
                         {
-                            Debug.Log("Applying custom stats to ai...");
                             instance.ApplyCustomStats(_char, Main.aiConfig, Settings.aiStats);
                         }
                     }
