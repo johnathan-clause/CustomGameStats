@@ -1,10 +1,10 @@
 ﻿using System;
-using System.IO;
 using System.Collections;
 using System.Collections.Generic;
-using UnityEngine;
-using SharedModConfig;
+using System.IO;
 using HarmonyLib;
+using SharedModConfig;
+using UnityEngine;
 
 namespace CustomGameStats
 {
@@ -57,7 +57,7 @@ namespace CustomGameStats
                     UpdatePlayerCustomStats(Main.playerConfig);
                 }
 
-                if (!PhotonNetwork.offlineMode && !PhotonNetwork.isMasterClient && PhotonNetwork.connected)
+                if (!PhotonNetwork.offlineMode && !PhotonNetwork.isMasterClient)
                 {
                     if (!_isOnline)
                     {
@@ -132,6 +132,28 @@ namespace CustomGameStats
             }
         }
 
+        private static void PlayerSyncHandler()
+        {
+            if (!PhotonNetwork.offlineMode && PhotonNetwork.isMasterClient)
+            {
+                instance.isPlayerInfoSynced = false;
+                RPCManager.instance.PlayerSync();
+            }
+
+            instance.UpdatePlayerCustomStats(Main.playerConfig);
+        }
+
+        private static void AiSyncHandler()
+        {
+            if (!PhotonNetwork.offlineMode && PhotonNetwork.isMasterClient)
+            {
+                instance.isAiInfoSynced = false;
+                RPCManager.instance.AiSync();
+            }
+
+            instance.UpdateAiCustomStats(Main.aiConfig);
+        }
+
         private static float ModifyLogic(bool _op, float _base, float _value, float _limiter)
         {
             if (_op)
@@ -156,30 +178,6 @@ namespace CustomGameStats
             {
                 return Math.Max(_limiter - _base, _value);
             }
-        }
-
-        private static void PlayerSyncHandler()
-        {
-            if (!PhotonNetwork.offlineMode && PhotonNetwork.isMasterClient)
-            {
-                Debug.Log("Host changed player settings...");
-                instance.isPlayerInfoSynced = false;
-                RPCManager.instance.PlayerSync();
-            }
-
-            instance.UpdatePlayerCustomStats(Main.playerConfig);
-        }
-
-        private static void AiSyncHandler()
-        {
-            if (!PhotonNetwork.offlineMode && PhotonNetwork.isMasterClient)
-            {
-                Debug.Log("Host changed ai settings...");
-                instance.isAiInfoSynced = false;
-                RPCManager.instance.AiSync();
-            }
-
-            instance.UpdateAiCustomStats(Main.aiConfig);
         }
 
         private static float Modify(bool _op, float _base, float _value, float _limiter, ModConfig _config)
@@ -264,52 +262,36 @@ namespace CustomGameStats
 
         private void ApplyCustomStats(Character _char, ModConfig _config, string _stackSource)
         {
+            VitalsInfo _ratios = LoadVitalsInfo(_char.UID) ?? new VitalsInfo
+            {
+                healthRatio = _char.HealthRatio,
+                burntHealthRatio = _char.Stats.BurntHealthRatio,
+                staminaRatio = _char.StaminaRatio,
+                burntStaminaRatio = _char.Stats.BurntStaminaRatio,
+                manaRatio = _char.ManaRatio,
+                burntManaRatio = _char.Stats.BurntManaRatio
+            };
+
             foreach (BBSetting _bbs in _config.Settings)
             {
                 if (_bbs is FloatSetting _f)
                 {
-                    Tag _tag = TagSourceManager.Instance.GetTag(AT.GetTagUID(_f.Name));
-                    float _val = _f.m_value;
                     bool _mult = (bool)_config.GetValue(_f.Name + Settings.modMult);
-
-                    if (_mult)
-                    {
-                        _val = _f.m_value / 100f;
-                    }
-
-                    SetCustomStat(_char.Stats, _stackSource, _tag, _val, _mult, _config);
-
-                    VitalsInfo _ratios = LoadVitalsInfo(_char.UID) ?? new VitalsInfo
-                    {
-                        healthRatio = _char.HealthRatio,
-                        burntHealthRatio = _char.Stats.BurntHealthRatio,
-                        staminaRatio = _char.StaminaRatio,
-                        burntStaminaRatio = _char.Stats.BurntStaminaRatio,
-                        manaRatio = _char.ManaRatio,
-                        burntManaRatio = _char.Stats.BurntManaRatio
-                    };
-
-
-                    if (_char.IsAI)
-                    {
-                        UpdateVitals(_char.Stats, _ratios, _config);
-                        if (_f.Name == "MaxHealth")
-                        {
-                            Debug.Log("Enemy " + _char.Name + "_" + _char.UID + "'s maxhp: " + _char.Stats.MaxHealth);
-                        }
-                    }
-                    else
-                    {
-                        if (_lastVitals.ContainsKey(_char.UID))
-                        {
-                            _lastVitals.Remove(_char.UID);
-                        }
-
-                        _lastVitals.Add(_char.UID, _ratios);
-                        UpdateVitals(_char.Stats, _ratios, _config);
-                        SaveVitalsInfo();
-                    }
+                    SetCustomStat(_char.Stats, _stackSource, TagSourceManager.Instance.GetTag(AT.GetTagUID(_f.Name)), _mult ? _f.m_value / 100f : _f.m_value, _mult, _config);
                 }
+            }
+
+            UpdateVitals(_char.Stats, _ratios, _config);
+
+            if (!_char.IsAI)
+            {
+                if (_lastVitals.ContainsKey(_char.UID))
+                {
+                    _lastVitals.Remove(_char.UID);
+                }
+
+                _lastVitals.Add(_char.UID, _ratios);
+                SaveVitalsInfo();
             }
         }
 
@@ -340,7 +322,8 @@ namespace CustomGameStats
                 case "StaminaRegen":
                     _stats.AddStatStack(_tag, new StatStack(_stackSource, Modify(_mult, AT.GetCharacterStat(_stats, "m_staminaRegen"), _val, Settings.minimumMod, _config)), _mult);
                     break;
-                case "StaminaUse": case "StaminaCostReduction":
+                case "StaminaUse":
+                case "StaminaCostReduction":
                     _stats.AddStatStack(_tag, new StatStack(_stackSource, Modify(_mult, AT.GetCharacterStat(_stats, "m_staminaUseModifiers"), _val, Settings.minimum, _config)), _mult);
                     break;
                 case "StaminaBurn":
@@ -370,10 +353,12 @@ namespace CustomGameStats
                 case "EtherealDamage":
                     _stats.AddStatStack(_tag, new StatStack(_stackSource, Modify(_mult, _dmg[1].CurrentValue, _val, Settings.minimum, _config)), _mult);
                     break;
-                case "DecayDamage": case "DarkDamage":
+                case "DecayDamage":
+                case "DarkDamage":
                     _stats.AddStatStack(_tag, new StatStack(_stackSource, Modify(_mult, _dmg[2].CurrentValue, _val, Settings.minimum, _config)), _mult);
                     break;
-                case "ElectricDamage": case "LightDamage":
+                case "ElectricDamage":
+                case "LightDamage":
                     _stats.AddStatStack(_tag, new StatStack(_stackSource, Modify(_mult, _dmg[3].CurrentValue, _val, Settings.minimum, _config)), _mult);
                     break;
                 case "FrostDamage":
@@ -409,7 +394,8 @@ namespace CustomGameStats
                 case "LightProtection":
                     _stats.AddStatStack(_tag, new StatStack(_stackSource, Modify(_mult, _pro[7].CurrentValue, _val, Settings.minimum, _config)), _mult);
                     break;
-                case "AllResistances": case "DamageResistance":
+                case "AllResistances":
+                case "DamageResistance":
                     _stats.AddStatStack(_tag, new StatStack(_stackSource, Modify(_mult, AT.GetCharacterStat(_stats, "m_resistanceModifiers"), _val, Settings.minimum, _config)), _mult);
                     break;
                 case "PhysicalResistance":
@@ -544,7 +530,6 @@ namespace CustomGameStats
 
             if (Time.time - _lastVitalsUpdate > 12f)
             {
-                Debug.Log("Checking vitals info...");
                 foreach (Character c in CharacterManager.Instance.Characters.Values)
                 {
                     if (_lastVitals.ContainsKey(c.UID) && c.HealthRatio != _lastVitals.GetValueSafe(c.UID).healthRatio && c.HealthRatio <= 1)
@@ -558,7 +543,7 @@ namespace CustomGameStats
                 return _boo;
             }
             else
-            {   
+            {
                 return _boo;
             }
         }
@@ -619,7 +604,6 @@ namespace CustomGameStats
 
         private IEnumerator CO_InvokeOrig(CharacterStats _instance)  //client
         {
-            Debug.Log("Starting delayed invoke...");
             while (!NetworkLevelLoader.Instance.AllPlayerDoneLoading && (instance.currentPlayerSyncInfo == null || instance.currentAiSyncInfo == null))
             {
                 yield return new WaitForSeconds(1.0f);
@@ -629,7 +613,6 @@ namespace CustomGameStats
             {
                 try
                 {
-                    Debug.Log("Trying reverse patch...");
                     CharacterStats_ApplyCoopStats.ReversePatch(_instance);
                 }
                 catch { }
@@ -661,7 +644,6 @@ namespace CustomGameStats
                     {
                         if ((bool)Main.playerConfig.GetValue(Settings.toggleSwitch))
                         {
-                            Debug.Log("Applying custom stats to players...");
                             instance.ApplyCustomStats(_char, Main.playerConfig, Settings.playerStats);
                         }
                     }
@@ -669,7 +651,6 @@ namespace CustomGameStats
                     {
                         if ((bool)Main.aiConfig.GetValue(Settings.toggleSwitch))
                         {
-                            Debug.Log("Applying custom stats to ai...");
                             instance.ApplyCustomStats(_char, Main.aiConfig, Settings.aiStats);
                         }
                     }

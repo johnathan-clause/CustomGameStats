@@ -1,9 +1,8 @@
 ﻿using System.Collections;
-using UnityEngine;
-using SharedModConfig;
 using System.Collections.Generic;
+using SharedModConfig;
+using UnityEngine;
 
-#pragma warning disable IDE0051 // Remove unused private members
 namespace CustomGameStats
 {
     class RPCManager : Photon.MonoBehaviour
@@ -23,30 +22,24 @@ namespace CustomGameStats
 
         public void RequestSync()  //client
         {
-            Debug.Log("Initializing sync infos...");
             InitPlayerSyncInfo();
             InitAiSyncInfo();
-
-            Debug.Log("Requesting sync....");
             photonView.RPC("RequestSyncRPC", PhotonNetwork.masterClient, new object[0]);
         }
 
         public void PlayerSync() //host
         {
-            Debug.Log("RPC sending client notification...");
             photonView.RPC("PlayerSyncRPC", PhotonTargets.All, new object[0]);
         }
 
         public void AiSync() //host
         {
-            Debug.Log("RPC sending client notification...");
             photonView.RPC("AiSyncRPC", PhotonTargets.All, new object[0]);
         }
 
         [PunRPC]
         private void RequestSyncRPC()  //host
         {
-            Debug.Log("Client sync request recieved...");
             StatManager.instance.isPlayerInfoSynced = false;
             StatManager.instance.isAiInfoSynced = false;
             StartCoroutine(CO_SetSyncInfo());
@@ -95,7 +88,6 @@ namespace CustomGameStats
 
         private void SendBoolSetting(ModConfig _config, string _flag)  //host
         {
-            Debug.Log("Sending bool settings...");
             foreach (BBSetting _bbs in _config.Settings)
             {
                 if (_bbs is BoolSetting _b)
@@ -128,42 +120,32 @@ namespace CustomGameStats
 
         private void SendSyncSettings(ModConfig _config, string _flag)  //host
         {
-            Debug.Log("Starting iteration for " + _flag + " settings...");
             SendBoolSetting(_config, _flag);
             SendFloatSetting(_config, _flag);
         }
 
         private IEnumerator CO_SetSyncInfo()  //host
         {
-            Debug.Log("Delayed send starting...");
             while (!NetworkLevelLoader.Instance.AllPlayerDoneLoading)
             {
                 yield return new WaitForSeconds(0.2f);
             }
-            Debug.Log("Players done loading for delayed send...");
-            Debug.Log("Checking for conditions to send...");
+
             if (!PhotonNetwork.isNonMasterClientInRoom)
             {
                 if (!StatManager.instance.isAiInfoSynced)
                 {
-                    Debug.Log("Conditions met, starting ai send...");
                     SendSyncSettings(Main.aiConfig, "ai");
-                    Debug.Log("Iteration finished...");
                     photonView.RPC("SetAiSyncInfoRPC", PhotonTargets.All, new object[0]);
                     StatManager.instance.isAiInfoSynced = true;
-                    Debug.Log("Attempting to finalize sync...");
                 }
 
                 if (!StatManager.instance.isPlayerInfoSynced)
                 {
-                    Debug.Log("Conditions met, starting player send...");
                     SendSyncSettings(Main.playerConfig, "player");
-                    Debug.Log("Iteration finished...");
                     photonView.RPC("SetPlayerSyncInfoRPC", PhotonTargets.All, new object[0]);
                     StatManager.instance.isPlayerInfoSynced = true;
-                    Debug.Log("Attempting to finalize sync...");
                 }
-                Debug.Log("Delayed process ending...");
             }
         }
 
@@ -190,7 +172,6 @@ namespace CustomGameStats
         {
             if (PhotonNetwork.isNonMasterClientInRoom)
             {
-                Debug.Log("Recieved sync notification...");
                 StatManager.instance.isPlayerInfoSynced = false;
             }
         }
@@ -209,7 +190,6 @@ namespace CustomGameStats
         {
             if (PhotonNetwork.isNonMasterClientInRoom)
             {
-                Debug.Log("Recieved sync notification...");
                 StatManager.instance.isAiInfoSynced = false;
             }
         }
