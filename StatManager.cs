@@ -28,6 +28,7 @@ namespace CustomGameStats
         private string _currentHostUID = "";
         private bool _vitalsUpdated = false;
         private bool _checkSplit = false;
+        private bool _isOnline = false;
         private float _lastVitalsUpdate = -12f;
 
         internal void Awake()
@@ -48,14 +49,6 @@ namespace CustomGameStats
                 return;
             }
 
-            if (!PhotonNetwork.offlineMode && !PhotonNetwork.isMasterClient)
-            {
-                if (UpdateSyncInfo())
-                {
-                    RPCManager.instance.RequestSync();
-                }
-            }
-
             if (Global.Lobby.PlayersInLobbyCount > 1)
             {
                 if (_checkSplit)
@@ -63,10 +56,34 @@ namespace CustomGameStats
                     _checkSplit = false;
                     UpdatePlayerCustomStats(Main.playerConfig);
                 }
+
+                if (!PhotonNetwork.offlineMode && !PhotonNetwork.isMasterClient && PhotonNetwork.connected)
+                {
+                    if (!_isOnline)
+                    {
+                        _isOnline = true;
+                    }
+
+                    if (UpdateSyncInfo())
+                    {
+                        RPCManager.instance.RequestSync();
+                    }
+                }
             }
             else
             {
                 _checkSplit = true;
+
+                if (_isOnline && PhotonNetwork.connected)
+                {
+                    _isOnline = false;
+                    isPlayerInfoSynced = false;
+                    currentPlayerSyncInfo = null;
+                    isAiInfoSynced = false;
+                    currentAiSyncInfo = null;
+                    UpdatePlayerCustomStats(Main.playerConfig);
+                    UpdateAiCustomStats(Main.aiConfig);
+                }
             }
 
             if (UpdateVitalsInfo() && _vitalsUpdated)
@@ -119,32 +136,24 @@ namespace CustomGameStats
         {
             if (_op)
             {
-                Debug.Log("Calculating percentage modifier....");
                 if (_value < 0)
                 {
-                    Debug.Log("Value below zero...");
                     if ((_limiter - _base) / _base > _value)
                     {
-                        Debug.Log("applying limiter to negative value...");
                         return (_limiter - _base) / _base;
                     }
                     else
                     {
-                        Debug.Log("returning negative value...");
                         return _value;
                     }
                 }
                 else
                 {
-                    Debug.Log("Value greater than zero, returning value...");
                     return _value;
                 }
             }
             else
             {
-                Debug.Log("Calculating flat modifier...");
-                Debug.Log("Limiter: " + _limiter);
-                Debug.Log("Base: " + _base);
                 return Math.Max(_limiter - _base, _value);
             }
         }
@@ -153,43 +162,36 @@ namespace CustomGameStats
         {
             if (!PhotonNetwork.offlineMode && PhotonNetwork.isMasterClient)
             {
+                Debug.Log("Host changed player settings...");
                 instance.isPlayerInfoSynced = false;
                 RPCManager.instance.PlayerSync();
             }
 
-            if (PhotonNetwork.offlineMode)
-            {
-                instance.UpdatePlayerCustomStats(Main.playerConfig);
-            }
+            instance.UpdatePlayerCustomStats(Main.playerConfig);
         }
 
         private static void AiSyncHandler()
         {
             if (!PhotonNetwork.offlineMode && PhotonNetwork.isMasterClient)
             {
+                Debug.Log("Host changed ai settings...");
                 instance.isAiInfoSynced = false;
                 RPCManager.instance.AiSync();
             }
 
-            if (PhotonNetwork.offlineMode)
-            {
-                instance.UpdateAiCustomStats(Main.aiConfig);
-            }
+            instance.UpdateAiCustomStats(Main.aiConfig);
         }
 
         private static float Modify(bool _op, float _base, float _value, float _limiter, ModConfig _config)
         {
             if ((bool)_config.GetValue(Settings.gameBehaviour))
             {
-                Debug.Log("Behaviour set, proceeding...");
                 return ModifyLogic(_op, _base, _value, _limiter);
             }
             else
             {
                 if ((bool)_config.GetValue(Settings.strictMinimum))
                 {
-                    Debug.Log("Behaviour not set...");
-                    Debug.Log("Strict set, proceeding...");
                     switch (_limiter)
                     {
                         case 50f:
@@ -207,7 +209,6 @@ namespace CustomGameStats
                 }
                 else
                 {
-                    Debug.Log("Behaviour and Strict not set, proceeding...");
                     return _value;
                 }
             }
@@ -235,7 +236,7 @@ namespace CustomGameStats
             }
             else
             {
-                return true;
+                return false;
             }
         }
 
@@ -292,6 +293,10 @@ namespace CustomGameStats
                     if (_char.IsAI)
                     {
                         UpdateVitals(_char.Stats, _ratios, _config);
+                        if (_f.Name == "MaxHealth")
+                        {
+                            Debug.Log("Enemy " + _char.Name + "_" + _char.UID + "'s maxhp: " + _char.Stats.MaxHealth);
+                        }
                     }
                     else
                     {
@@ -303,11 +308,6 @@ namespace CustomGameStats
                         _lastVitals.Add(_char.UID, _ratios);
                         UpdateVitals(_char.Stats, _ratios, _config);
                         SaveVitalsInfo();
-                        if (_f.Name == "MaxHealth")
-                        {
-                            Debug.Log("MaxHealth: " + _char.Stats.MaxHealth);
-                            Debug.Log("BurntHealth: " + _char.Stats.BurntHealth);
-                        }
                     }
                 }
             }
@@ -326,7 +326,6 @@ namespace CustomGameStats
             switch (_tag.TagName)
             {
                 case "MaxHealth":
-                    Debug.Log("Base MaxHealth: " + AT.GetCharacterStat(_stats, "m_maxHealthStat"));
                     _stats.AddStatStack(_tag, new StatStack(_stackSource, Modify(_mult, AT.GetCharacterStat(_stats, "m_maxHealthStat"), _val, CharacterStats.MIN_MAXHEALTH_LIMIT, _config)), _mult);
                     break;
                 case "HealthRegen":
@@ -341,8 +340,7 @@ namespace CustomGameStats
                 case "StaminaRegen":
                     _stats.AddStatStack(_tag, new StatStack(_stackSource, Modify(_mult, AT.GetCharacterStat(_stats, "m_staminaRegen"), _val, Settings.minimumMod, _config)), _mult);
                     break;
-                case "StaminaUse":
-                case "StaminaCostReduction":
+                case "StaminaUse": case "StaminaCostReduction":
                     _stats.AddStatStack(_tag, new StatStack(_stackSource, Modify(_mult, AT.GetCharacterStat(_stats, "m_staminaUseModifiers"), _val, Settings.minimum, _config)), _mult);
                     break;
                 case "StaminaBurn":
@@ -372,12 +370,10 @@ namespace CustomGameStats
                 case "EtherealDamage":
                     _stats.AddStatStack(_tag, new StatStack(_stackSource, Modify(_mult, _dmg[1].CurrentValue, _val, Settings.minimum, _config)), _mult);
                     break;
-                case "DecayDamage":
-                case "DarkDamage":
+                case "DecayDamage": case "DarkDamage":
                     _stats.AddStatStack(_tag, new StatStack(_stackSource, Modify(_mult, _dmg[2].CurrentValue, _val, Settings.minimum, _config)), _mult);
                     break;
-                case "ElectricDamage":
-                case "LightDamage":
+                case "ElectricDamage": case "LightDamage":
                     _stats.AddStatStack(_tag, new StatStack(_stackSource, Modify(_mult, _dmg[3].CurrentValue, _val, Settings.minimum, _config)), _mult);
                     break;
                 case "FrostDamage":
@@ -413,8 +409,7 @@ namespace CustomGameStats
                 case "LightProtection":
                     _stats.AddStatStack(_tag, new StatStack(_stackSource, Modify(_mult, _pro[7].CurrentValue, _val, Settings.minimum, _config)), _mult);
                     break;
-                case "AllResistances":
-                case "DamageResistance":
+                case "AllResistances": case "DamageResistance":
                     _stats.AddStatStack(_tag, new StatStack(_stackSource, Modify(_mult, AT.GetCharacterStat(_stats, "m_resistanceModifiers"), _val, Settings.minimum, _config)), _mult);
                     break;
                 case "PhysicalResistance":
@@ -685,30 +680,6 @@ namespace CustomGameStats
                     {
                         instance.StartCoroutine(instance.CO_InvokeOrig(__instance));
                     }
-                    //else
-                    //{
-                    //    if ((!(bool)instance.currentPlayerSyncInfo.GetValue(_flag) && !(bool)instance.currentAiSyncInfo.GetValue(_flag)) || NetworkLevelLoader.Instance.IsGameplayPaused || (!(bool)_init && !(bool)_late))
-                    //    {
-                    //        return true;
-                    //    }
-
-                    //    if (!_char.IsAI)
-                    //    {
-                    //        if ((bool)instance.currentPlayerSyncInfo.GetValue(_flag))
-                    //        {
-                    //            Debug.Log("Client applying synced custom player stats...");
-                    //            instance.ApplyCustomStats(_char, instance.currentPlayerSyncInfo, Settings.playerStats);
-                    //        }
-                    //    }
-                    //    else
-                    //    {
-                    //        if ((bool)instance.currentAiSyncInfo.GetValue(_flag))
-                    //        {
-                    //            Debug.Log("Client applying synced custom ai stats...");
-                    //            instance.ApplyCustomStats(_char, instance.currentAiSyncInfo, Settings.aiStats);
-                    //        }
-                    //    }
-                    //}
                 }
 
                 return false;

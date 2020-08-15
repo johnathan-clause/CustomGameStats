@@ -47,6 +47,8 @@ namespace CustomGameStats
         private void RequestSyncRPC()  //host
         {
             Debug.Log("Client sync request recieved...");
+            StatManager.instance.isPlayerInfoSynced = false;
+            StatManager.instance.isAiInfoSynced = false;
             StartCoroutine(CO_SetSyncInfo());
         }
 
