@@ -59,7 +59,7 @@ namespace CustomGameStats
         public static string manaUseMod = "ManaUse";
         public static string manaBurnMod = "ManaBurn";
         public static string impactMod = "Impact";
-        public static string allDamagesMod= "AllDamages";
+        public static string allDamagesMod = "AllDamages";
         public static string physicalDamageMod = "PhysicalDamage";
         public static string etherealDamageMod = "EtherealDamage";
         public static string decayDamageMod = "DecayDamage";
