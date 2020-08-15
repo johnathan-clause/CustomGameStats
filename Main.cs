@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
-using SharedModConfig;
 using BepInEx;
 using BepInEx.Logging;
 using HarmonyLib;
+using SharedModConfig;
 
 namespace CustomGameStats
 {

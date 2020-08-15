@@ -1,10 +1,10 @@
 ﻿using System;
-using System.IO;
 using System.Collections;
 using System.Collections.Generic;
-using UnityEngine;
-using SharedModConfig;
+using System.IO;
 using HarmonyLib;
+using SharedModConfig;
+using UnityEngine;
 
 namespace CustomGameStats
 {
@@ -334,7 +334,8 @@ namespace CustomGameStats
                 case "StaminaRegen":
                     _stats.AddStatStack(_tag, new StatStack(_stackSource, Modify(_mult, AT.GetCharacterStat(_stats, "m_staminaRegen"), _val, Settings.minimumMod, _config)), _mult);
                     break;
-                case "StaminaUse": case "StaminaCostReduction":
+                case "StaminaUse":
+                case "StaminaCostReduction":
                     _stats.AddStatStack(_tag, new StatStack(_stackSource, Modify(_mult, AT.GetCharacterStat(_stats, "m_staminaUseModifiers"), _val, Settings.minimum, _config)), _mult);
                     break;
                 case "StaminaBurn":
@@ -364,10 +365,12 @@ namespace CustomGameStats
                 case "EtherealDamage":
                     _stats.AddStatStack(_tag, new StatStack(_stackSource, Modify(_mult, _dmg[1].CurrentValue, _val, Settings.minimum, _config)), _mult);
                     break;
-                case "DecayDamage": case "DarkDamage":
+                case "DecayDamage":
+                case "DarkDamage":
                     _stats.AddStatStack(_tag, new StatStack(_stackSource, Modify(_mult, _dmg[2].CurrentValue, _val, Settings.minimum, _config)), _mult);
                     break;
-                case "ElectricDamage": case "LightDamage":
+                case "ElectricDamage":
+                case "LightDamage":
                     _stats.AddStatStack(_tag, new StatStack(_stackSource, Modify(_mult, _dmg[3].CurrentValue, _val, Settings.minimum, _config)), _mult);
                     break;
                 case "FrostDamage":
@@ -403,7 +406,8 @@ namespace CustomGameStats
                 case "LightProtection":
                     _stats.AddStatStack(_tag, new StatStack(_stackSource, Modify(_mult, _pro[7].CurrentValue, _val, Settings.minimum, _config)), _mult);
                     break;
-                case "AllResistances": case "DamageResistance":
+                case "AllResistances":
+                case "DamageResistance":
                     _stats.AddStatStack(_tag, new StatStack(_stackSource, Modify(_mult, AT.GetCharacterStat(_stats, "m_resistanceModifiers"), _val, Settings.minimum, _config)), _mult);
                     break;
                 case "PhysicalResistance":
@@ -551,7 +555,7 @@ namespace CustomGameStats
                 return _boo;
             }
             else
-            {   
+            {
                 return _boo;
             }
         }

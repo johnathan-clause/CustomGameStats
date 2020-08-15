@@ -1,7 +1,7 @@
 ﻿using System.Collections;
-using UnityEngine;
-using SharedModConfig;
 using System.Collections.Generic;
+using SharedModConfig;
+using UnityEngine;
 
 #pragma warning disable IDE0051 // Remove unused private members
 namespace CustomGameStats
@@ -131,7 +131,7 @@ namespace CustomGameStats
             {
                 yield return new WaitForSeconds(0.2f);
             }
-            
+
             if (!PhotonNetwork.isNonMasterClientInRoom)
             {
                 if (!StatManager.instance.isAiInfoSynced)
