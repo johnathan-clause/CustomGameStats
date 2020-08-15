@@ -478,7 +478,7 @@ namespace CustomGameStats
                 Name = attackSpeedMod + modMult,
                 SectionTitle = attackSpeedSection,
                 Description = multDesc,
-                DefaultValue = false
+                DefaultValue = true
             },
             new FloatSetting
             {
@@ -734,7 +734,7 @@ namespace CustomGameStats
                 Name = allDamagesMod + modMult,
                 SectionTitle = allDamagesSection,
                 Description = multDesc,
-                DefaultValue = false
+                DefaultValue = true
             },
             new FloatSetting
             {
@@ -750,7 +750,7 @@ namespace CustomGameStats
                 Name = physicalDamageMod + modMult,
                 SectionTitle = physicalDamageSection,
                 Description = multDesc,
-                DefaultValue = false
+                DefaultValue = true
             },
             new FloatSetting
             {
@@ -766,7 +766,7 @@ namespace CustomGameStats
                 Name = impactMod + modMult,
                 SectionTitle = impactSection,
                 Description = multDesc,
-                DefaultValue = false,
+                DefaultValue = true
             },
             new FloatSetting
             {
@@ -782,7 +782,7 @@ namespace CustomGameStats
                 Name = etherealDamageMod + modMult,
                 SectionTitle = etherealDamageSection,
                 Description = multDesc,
-                DefaultValue = false
+                DefaultValue = true
             },
             new FloatSetting
             {
@@ -798,7 +798,7 @@ namespace CustomGameStats
                 Name = decayDamageMod + modMult,
                 SectionTitle = decayDamageSection,
                 Description = multDesc,
-                DefaultValue = false
+                DefaultValue = true
             },
             new FloatSetting
             {
@@ -814,7 +814,7 @@ namespace CustomGameStats
                 Name = electricDamageMod + modMult,
                 SectionTitle = electricDamageSection,
                 Description = multDesc,
-                DefaultValue = false
+                DefaultValue = true
             },
             new FloatSetting
             {
@@ -830,7 +830,7 @@ namespace CustomGameStats
                 Name = frostDamageMod + modMult,
                 SectionTitle = frostDamageSection,
                 Description = multDesc,
-                DefaultValue = false
+                DefaultValue = true
             },
             new FloatSetting
             {
@@ -846,7 +846,7 @@ namespace CustomGameStats
                 Name = fireDamageMod + modMult,
                 SectionTitle = fireDamageSection,
                 Description = multDesc,
-                DefaultValue = false
+                DefaultValue = true
             },
             new FloatSetting
             {
@@ -862,7 +862,7 @@ namespace CustomGameStats
                 Name = darkDamageMod + modMult,
                 SectionTitle = darkDamageSection,
                 Description = multDesc,
-                DefaultValue = false
+                DefaultValue = true
             },
             new FloatSetting
             {
@@ -878,7 +878,7 @@ namespace CustomGameStats
                 Name = lightDamageMod + modMult,
                 SectionTitle = lightDamageSection,
                 Description = multDesc,
-                DefaultValue = false
+                DefaultValue = true
             },
             new FloatSetting
             {
