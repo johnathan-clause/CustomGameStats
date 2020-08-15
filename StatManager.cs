@@ -108,27 +108,27 @@ namespace CustomGameStats
 
         public void SetSyncBoolInfo(string _name, bool _bool, string _flag)  //client
         {
-            if (_flag == "player")
+            switch (_flag)
             {
-                instance.currentPlayerSyncInfo.SetValue(_name, _bool);
-            }
-
-            if (_flag == "ai")
-            {
-                instance.currentAiSyncInfo.SetValue(_name, _bool);
+                case "player":
+                    instance.currentPlayerSyncInfo.SetValue(_name, _bool);
+                    break;
+                case "ai":
+                    instance.currentAiSyncInfo.SetValue(_name, _bool);
+                    break;
             }
         }
 
         public void SetSyncFloatInfo(string _name, float _float, string _flag)  //client
         {
-            if (_flag == "player")
+            switch (_flag)
             {
-                instance.currentPlayerSyncInfo.SetValue(_name, _float);
-            }
-
-            if (_flag == "ai")
-            {
-                instance.currentAiSyncInfo.SetValue(_name, _float);
+                case "player":
+                    instance.currentPlayerSyncInfo.SetValue(_name, _float);
+                    break;
+                case "ai":
+                    instance.currentAiSyncInfo.SetValue(_name, _float);
+                    break;
             }
         }
 
