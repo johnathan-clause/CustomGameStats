@@ -15,7 +15,7 @@
 *.userprefs
 
 #User-directories
-[Rr]ef/
+[Rr]efs/
 
 # Build results
 [Dd]ebug/
