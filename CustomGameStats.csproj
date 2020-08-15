@@ -90,5 +90,15 @@
     <None Include=".editorconfig" />
     <None Include="README.md" />
   </ItemGroup>
+  <ItemGroup>
+    <Content Include="refs\0Harmony.dll" />
+    <Content Include="refs\Assembly-CSharp-firstpass.dll" />
+    <Content Include="refs\Assembly-CSharp.dll" />
+    <Content Include="refs\BepInEx.dll" />
+    <Content Include="refs\SharedModConfig.dll" />
+    <Content Include="refs\UnityEngine.CoreModule.dll" />
+    <Content Include="refs\UnityEngine.dll" />
+    <Content Include="refs\UnityEngine.JSONSerializeModule.dll" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
