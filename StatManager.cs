@@ -57,7 +57,7 @@ namespace CustomGameStats
                     UpdatePlayerCustomStats(Main.playerConfig);
                 }
 
-                if (!PhotonNetwork.offlineMode && !PhotonNetwork.isMasterClient && PhotonNetwork.connected)
+                if (!PhotonNetwork.offlineMode && !PhotonNetwork.isMasterClient)
                 {
                     if (!_isOnline)
                     {
@@ -132,6 +132,28 @@ namespace CustomGameStats
             }
         }
 
+        private static void PlayerSyncHandler()
+        {
+            if (!PhotonNetwork.offlineMode && PhotonNetwork.isMasterClient)
+            {
+                instance.isPlayerInfoSynced = false;
+                RPCManager.instance.PlayerSync();
+            }
+
+            instance.UpdatePlayerCustomStats(Main.playerConfig);
+        }
+
+        private static void AiSyncHandler()
+        {
+            if (!PhotonNetwork.offlineMode && PhotonNetwork.isMasterClient)
+            {
+                instance.isAiInfoSynced = false;
+                RPCManager.instance.AiSync();
+            }
+
+            instance.UpdateAiCustomStats(Main.aiConfig);
+        }
+
         private static float ModifyLogic(bool _op, float _base, float _value, float _limiter)
         {
             if (_op)
@@ -156,28 +178,6 @@ namespace CustomGameStats
             {
                 return Math.Max(_limiter - _base, _value);
             }
-        }
-
-        private static void PlayerSyncHandler()
-        {
-            if (!PhotonNetwork.offlineMode && PhotonNetwork.isMasterClient)
-            {
-                instance.isPlayerInfoSynced = false;
-                RPCManager.instance.PlayerSync();
-            }
-
-            instance.UpdatePlayerCustomStats(Main.playerConfig);
-        }
-
-        private static void AiSyncHandler()
-        {
-            if (!PhotonNetwork.offlineMode && PhotonNetwork.isMasterClient)
-            {
-                instance.isAiInfoSynced = false;
-                RPCManager.instance.AiSync();
-            }
-
-            instance.UpdateAiCustomStats(Main.aiConfig);
         }
 
         private static float Modify(bool _op, float _base, float _value, float _limiter, ModConfig _config)
@@ -262,48 +262,36 @@ namespace CustomGameStats
 
         private void ApplyCustomStats(Character _char, ModConfig _config, string _stackSource)
         {
+            VitalsInfo _ratios = LoadVitalsInfo(_char.UID) ?? new VitalsInfo
+            {
+                healthRatio = _char.HealthRatio,
+                burntHealthRatio = _char.Stats.BurntHealthRatio,
+                staminaRatio = _char.StaminaRatio,
+                burntStaminaRatio = _char.Stats.BurntStaminaRatio,
+                manaRatio = _char.ManaRatio,
+                burntManaRatio = _char.Stats.BurntManaRatio
+            };
+
             foreach (BBSetting _bbs in _config.Settings)
             {
                 if (_bbs is FloatSetting _f)
                 {
-                    Tag _tag = TagSourceManager.Instance.GetTag(AT.GetTagUID(_f.Name));
-                    float _val = _f.m_value;
                     bool _mult = (bool)_config.GetValue(_f.Name + Settings.modMult);
-
-                    if (_mult)
-                    {
-                        _val = _f.m_value / 100f;
-                    }
-
-                    SetCustomStat(_char.Stats, _stackSource, _tag, _val, _mult, _config);
-
-                    VitalsInfo _ratios = LoadVitalsInfo(_char.UID) ?? new VitalsInfo
-                    {
-                        healthRatio = _char.HealthRatio,
-                        burntHealthRatio = _char.Stats.BurntHealthRatio,
-                        staminaRatio = _char.StaminaRatio,
-                        burntStaminaRatio = _char.Stats.BurntStaminaRatio,
-                        manaRatio = _char.ManaRatio,
-                        burntManaRatio = _char.Stats.BurntManaRatio
-                    };
-
-
-                    if (_char.IsAI)
-                    {
-                        UpdateVitals(_char.Stats, _ratios, _config);
-                    }
-                    else
-                    {
-                        if (_lastVitals.ContainsKey(_char.UID))
-                        {
-                            _lastVitals.Remove(_char.UID);
-                        }
-
-                        _lastVitals.Add(_char.UID, _ratios);
-                        UpdateVitals(_char.Stats, _ratios, _config);
-                        SaveVitalsInfo();
-                    }
+                    SetCustomStat(_char.Stats, _stackSource, TagSourceManager.Instance.GetTag(AT.GetTagUID(_f.Name)), _mult ? _f.m_value / 100f : _f.m_value, _mult, _config);
                 }
+            }
+
+            UpdateVitals(_char.Stats, _ratios, _config);
+
+            if (!_char.IsAI)
+            {
+                if (_lastVitals.ContainsKey(_char.UID))
+                {
+                    _lastVitals.Remove(_char.UID);
+                }
+
+                _lastVitals.Add(_char.UID, _ratios);
+                SaveVitalsInfo();
             }
         }
 
