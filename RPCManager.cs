@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using SharedModConfig;
 using UnityEngine;
 
-#pragma warning disable IDE0051 // Remove unused private members
 namespace CustomGameStats
 {
     class RPCManager : Photon.MonoBehaviour
