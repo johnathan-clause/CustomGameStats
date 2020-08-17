@@ -12,7 +12,7 @@ namespace CustomGameStats
     {
         public const string GUID = "com.theinterstice.customgamestats";
         public const string NAME = "Custom Game Stats";
-        public const string VERSION = "2.0.0";
+        public const string VERSION = "2.1.0";
 
         public const string DEPENDANT = "com.sinai.SharedModConfig";
 
@@ -44,18 +44,18 @@ namespace CustomGameStats
             Logger.Log(LogLevel.Message, NAME + " " + VERSION + " instantiated!");
         }
 
-        private ModConfig SetupConfig(string _set)
+        private ModConfig SetupConfig(string _flag)
         {
             List<BBSetting> _bbs = new List<BBSetting>();
 
-            if (_set == Settings.aiStatsTitle)
+            if (_flag == Settings.aiStatsTitle)
             {
                 var _settings = new Settings();
                 _bbs.AddRange(_settings.rulesSettings);
                 _bbs.AddRange(_settings.characterSettings);
             }
 
-            if (_set == Settings.playerStatsTitle)
+            if (_flag == Settings.playerStatsTitle)
             {
                 var _settings = new Settings();
                 _bbs.AddRange(_settings.rulesSettings);
@@ -65,7 +65,7 @@ namespace CustomGameStats
 
             ModConfig _config = new ModConfig
             {
-                ModName = Settings.modName + _set,
+                ModName = Settings.modName + _flag,
                 SettingsVersion = 1.0,
                 Settings = _bbs
             };
