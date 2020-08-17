@@ -54,7 +54,7 @@ namespace CustomGameStats
                 if (_checkSplit)
                 {
                     _checkSplit = false;
-                    UpdatePlayerCustomStats(Main.playerConfig);
+                    UpdateCustomStats(Main.playerConfig, true);
                 }
 
                 if (!PhotonNetwork.offlineMode && !PhotonNetwork.isMasterClient)
@@ -74,15 +74,19 @@ namespace CustomGameStats
             {
                 _checkSplit = true;
 
-                if (_isOnline && PhotonNetwork.connected)
+                if (_isOnline)
                 {
                     _isOnline = false;
                     isPlayerInfoSynced = false;
                     currentPlayerSyncInfo = null;
                     isAiInfoSynced = false;
                     currentAiSyncInfo = null;
-                    UpdatePlayerCustomStats(Main.playerConfig);
-                    UpdateAiCustomStats(Main.aiConfig);
+                }
+
+                if (PhotonNetwork.connected)
+                {
+                    UpdateCustomStats(Main.playerConfig, true);
+                    UpdateCustomStats(Main.aiConfig, false);
                 }
             }
 
@@ -96,14 +100,14 @@ namespace CustomGameStats
         {
             instance.isPlayerInfoSynced = true;
             instance._currentHostUID = CharacterManager.Instance.GetWorldHostCharacter()?.UID;
-            UpdatePlayerCustomStats(instance.currentPlayerSyncInfo);
+            UpdateCustomStats(instance.currentPlayerSyncInfo, true);
         }
 
         public void SetAiSyncInfo()  //client
         {
             instance.isAiInfoSynced = true;
             instance._currentHostUID = CharacterManager.Instance.GetWorldHostCharacter()?.UID;
-            UpdateAiCustomStats(instance.currentAiSyncInfo);
+            UpdateCustomStats(instance.currentAiSyncInfo, false);
         }
 
         public void SetSyncBoolInfo(string _name, bool _bool, string _flag)  //client
@@ -140,7 +144,7 @@ namespace CustomGameStats
                 RPCManager.instance.PlayerSync();
             }
 
-            instance.UpdatePlayerCustomStats(Main.playerConfig);
+            instance.UpdateCustomStats(Main.playerConfig, true);
         }
 
         private static void AiSyncHandler()
@@ -151,7 +155,7 @@ namespace CustomGameStats
                 RPCManager.instance.AiSync();
             }
 
-            instance.UpdateAiCustomStats(Main.aiConfig);
+            instance.UpdateCustomStats(Main.aiConfig,false);
         }
 
         private static float ModifyLogic(bool _op, float _base, float _value, float _limiter)
@@ -238,27 +242,38 @@ namespace CustomGameStats
             }
         }
 
-        private void UpdatePlayerCustomStats(ModConfig _config)
+        private void UpdateCustomStats(ModConfig _config, bool _flag)
         {
             foreach (Character c in CharacterManager.Instance.Characters.Values)
             {
-                if (!c.IsAI && (bool)_config.GetValue(Settings.toggleSwitch))
+                if (_flag ? !c.IsAI : c.IsAI && (bool)_config.GetValue(Settings.toggleSwitch))
                 {
-                    ApplyCustomStats(c, _config, Settings.playerStats);
+                    ApplyCustomStats(c, _config, _flag ? Settings.playerStats : Settings.aiStats);
                 }
             }
         }
 
-        private void UpdateAiCustomStats(ModConfig _config)
-        {
-            foreach (Character c in CharacterManager.Instance.Characters.Values)
-            {
-                if (c.IsAI && (bool)_config.GetValue(Settings.toggleSwitch))
-                {
-                    ApplyCustomStats(c, _config, Settings.aiStats);
-                }
-            }
-        }
+        //private void UpdatePlayerCustomStats(ModConfig _config)
+        //{
+        //    foreach (Character c in CharacterManager.Instance.Characters.Values)
+        //    {
+        //        if (!c.IsAI && (bool)_config.GetValue(Settings.toggleSwitch))
+        //        {
+        //            ApplyCustomStats(c, _config, Settings.playerStats);
+        //        }
+        //    }
+        //}
+
+        //private void UpdateAiCustomStats(ModConfig _config)
+        //{
+        //    foreach (Character c in CharacterManager.Instance.Characters.Values)
+        //    {
+        //        if (c.IsAI && (bool)_config.GetValue(Settings.toggleSwitch))
+        //        {
+        //            ApplyCustomStats(c, _config, Settings.aiStats);
+        //        }
+        //    }
+        //}
 
         private void ApplyCustomStats(Character _char, ModConfig _config, string _stackSource)
         {
@@ -613,7 +628,7 @@ namespace CustomGameStats
             {
                 try
                 {
-                    CharacterStats_ApplyCoopStats.ReversePatch(_instance);
+                    //CharacterStats_ApplyCoopStats.ReversePatch(_instance);
                 }
                 catch { }
             }
@@ -622,46 +637,46 @@ namespace CustomGameStats
         [HarmonyPatch(typeof(CharacterStats), "ApplyCoopStats")]
         public class CharacterStats_ApplyCoopStats
         {
-            [HarmonyReversePatch]
-            public static void ReversePatch(CharacterStats __instance)
-            {
-                throw new NotImplementedException("Harmony::ReversePatch::CharacterStats.ApplyCoopStats");
-            }
+            //[HarmonyReversePatch]
+            //public static void ReversePatch(CharacterStats __instance)
+            //{
+            //    throw new NotImplementedException("Harmony::ReversePatch::CharacterStats.ApplyCoopStats");
+            //}
 
             [HarmonyPrefix]
-            public static bool Prefix(CharacterStats __instance)
+            public static bool Prefix(/*CharacterStats __instance*/)
             {
-                Character _char = __instance.GetComponent<Character>();
+            //    Character _char = __instance.GetComponent<Character>();
 
-                if ((!(bool)Main.playerConfig.GetValue(Settings.toggleSwitch) && !(bool)Main.aiConfig.GetValue(Settings.toggleSwitch)) || NetworkLevelLoader.Instance.IsGameplayPaused || (!_char.IsStartInitDone || !_char.IsLateInitDone))
-                {
-                    return true;
-                }
+            //    if ((!(bool)Main.playerConfig.GetValue(Settings.toggleSwitch) && !(bool)Main.aiConfig.GetValue(Settings.toggleSwitch)) || NetworkLevelLoader.Instance.IsGameplayPaused || (!_char.IsStartInitDone || !_char.IsLateInitDone))
+            //    {
+            //        return true;
+            //    }
 
-                if (PhotonNetwork.isMasterClient)
-                {
-                    if (!_char.IsAI)
-                    {
-                        if ((bool)Main.playerConfig.GetValue(Settings.toggleSwitch))
-                        {
-                            instance.ApplyCustomStats(_char, Main.playerConfig, Settings.playerStats);
-                        }
-                    }
-                    else
-                    {
-                        if ((bool)Main.aiConfig.GetValue(Settings.toggleSwitch))
-                        {
-                            instance.ApplyCustomStats(_char, Main.aiConfig, Settings.aiStats);
-                        }
-                    }
-                }
-                else
-                {
-                    if (instance.currentPlayerSyncInfo == null || instance.currentAiSyncInfo == null)
-                    {
-                        instance.StartCoroutine(instance.CO_InvokeOrig(__instance));
-                    }
-                }
+            //    if (PhotonNetwork.isMasterClient)
+            //    {
+            //        if (!_char.IsAI)
+            //        {
+            //            if ((bool)Main.playerConfig.GetValue(Settings.toggleSwitch))
+            //            {
+            //                instance.ApplyCustomStats(_char, Main.playerConfig, Settings.playerStats);
+            //            }
+            //        }
+            //        else
+            //        {
+            //            if ((bool)Main.aiConfig.GetValue(Settings.toggleSwitch))
+            //            {
+            //                instance.ApplyCustomStats(_char, Main.aiConfig, Settings.aiStats);
+            //            }
+            //        }
+            //    }
+            //    else
+            //    {
+            //        if (instance.currentPlayerSyncInfo == null || instance.currentAiSyncInfo == null)
+            //        {
+            //            instance.StartCoroutine(instance.CO_InvokeOrig(__instance));
+            //        }
+            //    }
 
                 return false;
             }
