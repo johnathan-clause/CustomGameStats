@@ -686,11 +686,11 @@ namespace CustomGameStats
                         {
                             if ((bool)instance.currentPlayerSyncInfo.GetValue(Settings.toggleSwitch))
                             {
-                                instance.ApplyCustomStats(_char, Main.playerConfig, Settings.playerStats, true);
+                                instance.ApplyCustomStats(_char, instance.currentPlayerSyncInfo, Settings.playerStats, true);
                             }
                             else
                             {
-                                instance.ApplyCustomStats(_char, Main.playerConfig, Settings.playerStats, false);
+                                instance.ApplyCustomStats(_char, instance.currentPlayerSyncInfo, Settings.playerStats, false);
                             }
                         }
                     }
