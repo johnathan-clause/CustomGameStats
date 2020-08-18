@@ -23,8 +23,6 @@ namespace CustomGameStats
         private static readonly string _ext = ".json";
 
         private readonly Dictionary<string, VitalsInfo> _lastVitals = new Dictionary<string, VitalsInfo>();
-        private readonly Action _playerSyncHandler = PlayerSyncHandler;
-        private readonly Action _aiSyncHandler = AiSyncHandler;
 
         private string _currentHostUID = "";
         private bool _vitalsUpdated = false;
@@ -39,8 +37,8 @@ namespace CustomGameStats
 
         internal void Start()
         {
-            Main.playerConfig.OnSettingsSaved += _playerSyncHandler;
-            Main.aiConfig.OnSettingsSaved += _aiSyncHandler;
+            Main.playerConfig.OnSettingsSaved += PlayerSyncHandler;
+            Main.aiConfig.OnSettingsSaved += AiSyncHandler;
         }
 
         internal void Update()
