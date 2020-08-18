@@ -62,7 +62,7 @@ namespace CustomGameStats
             {
                 StatManager.instance.currentPlayerSyncInfo = new ModConfig
                 {
-                    ModName = Settings.modName + "_player",
+                    ModName = Settings.modName + "_Player",
                     SettingsVersion = 1.0,
                     Settings = InitSyncSettings("player")
                 };
@@ -77,7 +77,7 @@ namespace CustomGameStats
             {
                 StatManager.instance.currentAiSyncInfo = new ModConfig
                 {
-                    ModName = Settings.modName + "_ai",
+                    ModName = Settings.modName + "_Ai",
                     SettingsVersion = 1.0,
                     Settings = InitSyncSettings("ai")
                 };

@@ -55,7 +55,7 @@ namespace CustomGameStats
                 if (_checkSplit)
                 {
                     _checkSplit = false;
-                    UpdateCustomStats(Main.playerConfig, true);
+                    UpdateCustomStats(Main.playerConfig);
                 }
 
                 if (!PhotonNetwork.offlineMode && !PhotonNetwork.isMasterClient)
@@ -82,8 +82,8 @@ namespace CustomGameStats
                     currentPlayerSyncInfo = null;
                     isAiInfoSynced = false;
                     currentAiSyncInfo = null;
-                    UpdateCustomStats(Main.playerConfig, true);
-                    UpdateCustomStats(Main.aiConfig, false);
+                    UpdateCustomStats(Main.playerConfig);
+                    UpdateCustomStats(Main.aiConfig);
                 }
             }
 
@@ -97,14 +97,14 @@ namespace CustomGameStats
         {
             instance.isPlayerInfoSynced = true;
             instance._currentHostUID = CharacterManager.Instance.GetWorldHostCharacter()?.UID;
-            UpdateCustomStats(instance.currentPlayerSyncInfo, true);
+            UpdateCustomStats(instance.currentPlayerSyncInfo);
         }
 
         public void SetAiSyncInfo()  //client
         {
             instance.isAiInfoSynced = true;
             instance._currentHostUID = CharacterManager.Instance.GetWorldHostCharacter()?.UID;
-            UpdateCustomStats(instance.currentAiSyncInfo, false);
+            UpdateCustomStats(instance.currentAiSyncInfo);
         }
 
         public void SetSyncBoolInfo(string _name, bool _bool, string _flag)  //client
@@ -141,7 +141,7 @@ namespace CustomGameStats
                 RPCManager.instance.PlayerSync();
             }
 
-            instance.UpdateCustomStats(Main.playerConfig, true);
+            instance.UpdateCustomStats(Main.playerConfig);
         }
 
         private static void AiSyncHandler()
@@ -152,7 +152,7 @@ namespace CustomGameStats
                 RPCManager.instance.AiSync();
             }
 
-            instance.UpdateCustomStats(Main.aiConfig,false);
+            instance.UpdateCustomStats(Main.aiConfig);
         }
 
         private static float ModifyLogic(bool _op, float _base, float _value, float _limiter)
@@ -239,10 +239,12 @@ namespace CustomGameStats
             }
         }
 
-        private void UpdateCustomStats(ModConfig _config, bool _flag)
+        private void UpdateCustomStats(ModConfig _config)
         {
             foreach (Character c in CharacterManager.Instance.Characters.Values)
             {
+                bool _flag = _config.ModName.Contains("Player");
+
                 if (_flag ? !c.IsAI : c.IsAI && (bool)_config.GetValue(Settings.toggleSwitch))
                 {
                     ApplyCustomStats(c, _config, _flag ? Settings.playerStats : Settings.aiStats, true);
@@ -628,11 +630,22 @@ namespace CustomGameStats
                 {
                     if (!_char.IsAI)
                     {
-                        instance.UpdateCustomStats(Main.playerConfig, true);
+                        instance.UpdateCustomStats(Main.playerConfig);
                     }
                     else
                     {
-                        instance.UpdateCustomStats(Main.aiConfig, false);
+                        instance.UpdateCustomStats(Main.aiConfig);
+                    }
+                }
+                else
+                {
+                    if (!_char.IsAI)
+                    {
+                        instance.UpdateCustomStats(instance.currentPlayerSyncInfo);
+                    }
+                    else
+                    {
+                        instance.UpdateCustomStats(instance.currentAiSyncInfo);
                     }
                 }
 
