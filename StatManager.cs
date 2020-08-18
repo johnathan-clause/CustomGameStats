@@ -135,6 +135,8 @@ namespace CustomGameStats
 
         private static void PlayerSyncHandler()
         {
+            if (Global.Lobby.PlayersInLobbyCount < 1) { return; }
+            
             if (!PhotonNetwork.offlineMode && PhotonNetwork.isMasterClient)
             {
                 instance.isPlayerInfoSynced = false;
@@ -146,6 +148,8 @@ namespace CustomGameStats
 
         private static void AiSyncHandler()
         {
+            if (Global.Lobby.PlayersInLobbyCount < 1) { return; }
+
             if (!PhotonNetwork.offlineMode && PhotonNetwork.isMasterClient)
             {
                 instance.isAiInfoSynced = false;
@@ -241,17 +245,38 @@ namespace CustomGameStats
 
         private void UpdateCustomStats(ModConfig _config)
         {
-            foreach (Character c in CharacterManager.Instance.Characters.Values)
+            if (_config.ModName.Contains("Player"))
             {
-                bool _flag = _config.ModName.Contains("Player");
-
-                if (_flag ? !c.IsAI : c.IsAI && (bool)_config.GetValue(Settings.toggleSwitch))
+                foreach (Character c in CharacterManager.Instance.Characters.Values)
                 {
-                    ApplyCustomStats(c, _config, _flag ? Settings.playerStats : Settings.aiStats, true);
+                    if (!c.IsAI)
+                    {
+                        if ((bool)_config.GetValue(Settings.toggleSwitch))
+                        {
+                            ApplyCustomStats(c, _config, Settings.playerStats, true);
+                        }
+                        else
+                        {
+                            ApplyCustomStats(c, _config, Settings.playerStats, false);
+                        }   
+                    }
                 }
-                else
+            }
+            else
+            {
+                foreach (Character c in CharacterManager.Instance.Characters.Values)
                 {
-                    ApplyCustomStats(c, _config, _flag ? Settings.playerStats : Settings.aiStats, false);
+                    if (c.IsAI)
+                    {
+                        if ((bool)_config.GetValue(Settings.toggleSwitch))
+                        {
+                            ApplyCustomStats(c, _config, Settings.aiStats, true);
+                        }
+                        else
+                        {
+                            ApplyCustomStats(c, _config, Settings.aiStats, false);
+                        }
+                    }
                 }
             }
         }
@@ -299,6 +324,8 @@ namespace CustomGameStats
                 _lastVitals.Add(_char.UID, _ratios);
                 SaveVitalsInfo();
             }
+
+            Debug.Log(_char.Name + "_" + _char.UID + "'s MaxHealth: " + _char.Stats.MaxHealth);
         }
 
         private void SetCustomStat(CharacterStats _stats, string _stackSource, Tag _tag, float _val, bool _mult, ModConfig _config)
@@ -630,22 +657,56 @@ namespace CustomGameStats
                 {
                     if (!_char.IsAI)
                     {
-                        instance.UpdateCustomStats(Main.playerConfig);
+                        if ((bool)Main.playerConfig.GetValue(Settings.toggleSwitch))
+                        {
+                            instance.ApplyCustomStats(_char, Main.playerConfig, Settings.playerStats, true);
+                        }
+                        else
+                        {
+                            instance.ApplyCustomStats(_char, Main.playerConfig, Settings.playerStats, false);
+                        }
                     }
                     else
                     {
-                        instance.UpdateCustomStats(Main.aiConfig);
+                        if ((bool)Main.aiConfig.GetValue(Settings.toggleSwitch))
+                        {
+                            instance.ApplyCustomStats(_char, Main.aiConfig, Settings.aiStats, true);
+                        }
+                        else
+                        {
+                            instance.ApplyCustomStats(_char, Main.aiConfig, Settings.aiStats, false);
+                        }
                     }
                 }
                 else
                 {
                     if (!_char.IsAI)
                     {
-                        instance.UpdateCustomStats(instance.currentPlayerSyncInfo);
+                        if (instance.currentPlayerSyncInfo != null)
+                        {
+                            if ((bool)instance.currentPlayerSyncInfo.GetValue(Settings.toggleSwitch))
+                            {
+                                instance.ApplyCustomStats(_char, Main.playerConfig, Settings.playerStats, true);
+                            }
+                            else
+                            {
+                                instance.ApplyCustomStats(_char, Main.playerConfig, Settings.playerStats, false);
+                            }
+                        }
                     }
                     else
                     {
-                        instance.UpdateCustomStats(instance.currentAiSyncInfo);
+                        if (instance.currentAiSyncInfo != null)
+                        {
+                            if ((bool)instance.currentAiSyncInfo.GetValue(Settings.toggleSwitch))
+                            {
+                                instance.ApplyCustomStats(_char, instance.currentAiSyncInfo, Settings.aiStats, true);
+                            }
+                            else
+                            {
+                                instance.ApplyCustomStats(_char, instance.currentAiSyncInfo, Settings.aiStats, false);
+                            }
+                        }
                     }
                 }
 
