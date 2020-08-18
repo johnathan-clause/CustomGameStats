@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using HarmonyLib;
 using SharedModConfig;
+using uNature.Core.Extensions;
 using UnityEngine;
 
 namespace CustomGameStats
@@ -244,12 +245,16 @@ namespace CustomGameStats
             {
                 if (_flag ? !c.IsAI : c.IsAI && (bool)_config.GetValue(Settings.toggleSwitch))
                 {
-                    ApplyCustomStats(c, _config, _flag ? Settings.playerStats : Settings.aiStats);
+                    ApplyCustomStats(c, _config, _flag ? Settings.playerStats : Settings.aiStats, true);
+                }
+                else
+                {
+                    ApplyCustomStats(c, _config, _flag ? Settings.playerStats : Settings.aiStats, false);
                 }
             }
         }
 
-        private void ApplyCustomStats(Character _char, ModConfig _config, string _stackSource)
+        private void ApplyCustomStats(Character _char, ModConfig _config, string _stackSource, bool _flag)
         {
             VitalsInfo _ratios = LoadVitalsInfo(_char.UID) ?? new VitalsInfo
             {
@@ -265,8 +270,18 @@ namespace CustomGameStats
             {
                 if (_bbs is FloatSetting _f)
                 {
+                    Tag _tag = TagSourceManager.Instance.GetTag(AT.GetTagUID(_f.Name));
                     bool _mult = (bool)_config.GetValue(_f.Name + Settings.modMult);
-                    SetCustomStat(_char.Stats, _stackSource, TagSourceManager.Instance.GetTag(AT.GetTagUID(_f.Name)), _mult ? _f.m_value / 100f : _f.m_value, _mult, _config);
+
+                    if (_flag)
+                    {
+                        SetCustomStat(_char.Stats, _stackSource, _tag, _mult ? _f.m_value / 100f : _f.m_value, _mult, _config);
+                    }
+                    else
+                    {
+                        ClearCustomStat(_char.Stats, _tag, _stackSource, _mult);
+                    }
+                    
                 }
             }
 
@@ -290,8 +305,7 @@ namespace CustomGameStats
             Stat[] _pro = (Stat[])AT.GetValue(typeof(CharacterStats), _stats, "m_damageProtection");
             Stat[] _res = (Stat[])AT.GetValue(typeof(CharacterStats), _stats, "m_damageResistance");
 
-            _stats.RemoveStatStack(_tag, _stackSource, !_mult);
-            _stats.RemoveStatStack(_tag, _stackSource, _mult);
+            ClearCustomStat(_stats, _tag, _stackSource, _mult);
             _stats.RefreshVitalMaxStat();
 
             switch (_tag.TagName)
@@ -483,6 +497,12 @@ namespace CustomGameStats
             }
         }
 
+        private void ClearCustomStat(CharacterStats _stats, Tag _tag, string _stackSource, bool _mult)
+        {
+            _stats.RemoveStatStack(_tag, _stackSource, !_mult);
+            _stats.RemoveStatStack(_tag, _stackSource, _mult);
+        }
+
         private void UpdateVitals(CharacterStats _stats, VitalsInfo _ratios, ModConfig _config)
         {
             float _hp, _hpb, _sp, _spb, _mp, _mpb;
@@ -608,17 +628,11 @@ namespace CustomGameStats
                 {
                     if (!_char.IsAI)
                     {
-                        if ((bool)Main.playerConfig.GetValue(Settings.toggleSwitch))
-                        {
-                            instance.ApplyCustomStats(_char, Main.playerConfig, Settings.playerStats);
-                        }
+                        instance.UpdateCustomStats(Main.playerConfig, true);
                     }
                     else
                     {
-                        if ((bool)Main.aiConfig.GetValue(Settings.toggleSwitch))
-                        {
-                            instance.ApplyCustomStats(_char, Main.aiConfig, Settings.aiStats);
-                        }
+                        instance.UpdateCustomStats(Main.aiConfig, false);
                     }
                 }
 
