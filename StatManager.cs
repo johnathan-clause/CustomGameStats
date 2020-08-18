@@ -81,10 +81,6 @@ namespace CustomGameStats
                     currentPlayerSyncInfo = null;
                     isAiInfoSynced = false;
                     currentAiSyncInfo = null;
-                }
-
-                if (PhotonNetwork.connected)
-                {
                     UpdateCustomStats(Main.playerConfig, true);
                     UpdateCustomStats(Main.aiConfig, false);
                 }
@@ -252,28 +248,6 @@ namespace CustomGameStats
                 }
             }
         }
-
-        //private void UpdatePlayerCustomStats(ModConfig _config)
-        //{
-        //    foreach (Character c in CharacterManager.Instance.Characters.Values)
-        //    {
-        //        if (!c.IsAI && (bool)_config.GetValue(Settings.toggleSwitch))
-        //        {
-        //            ApplyCustomStats(c, _config, Settings.playerStats);
-        //        }
-        //    }
-        //}
-
-        //private void UpdateAiCustomStats(ModConfig _config)
-        //{
-        //    foreach (Character c in CharacterManager.Instance.Characters.Values)
-        //    {
-        //        if (c.IsAI && (bool)_config.GetValue(Settings.toggleSwitch))
-        //        {
-        //            ApplyCustomStats(c, _config, Settings.aiStats);
-        //        }
-        //    }
-        //}
 
         private void ApplyCustomStats(Character _char, ModConfig _config, string _stackSource)
         {
@@ -617,66 +591,36 @@ namespace CustomGameStats
             }
         }
 
-        private IEnumerator CO_InvokeOrig(CharacterStats _instance)  //client
-        {
-            while (!NetworkLevelLoader.Instance.AllPlayerDoneLoading && (instance.currentPlayerSyncInfo == null || instance.currentAiSyncInfo == null))
-            {
-                yield return new WaitForSeconds(1.0f);
-            }
-
-            if (instance.currentPlayerSyncInfo == null || instance.currentAiSyncInfo == null || !(bool)instance.currentPlayerSyncInfo.GetValue(Settings.toggleSwitch) || !(bool)instance.currentAiSyncInfo.GetValue(Settings.toggleSwitch))
-            {
-                try
-                {
-                    //CharacterStats_ApplyCoopStats.ReversePatch(_instance);
-                }
-                catch { }
-            }
-        }
-
         [HarmonyPatch(typeof(CharacterStats), "ApplyCoopStats")]
         public class CharacterStats_ApplyCoopStats
         {
-            //[HarmonyReversePatch]
-            //public static void ReversePatch(CharacterStats __instance)
-            //{
-            //    throw new NotImplementedException("Harmony::ReversePatch::CharacterStats.ApplyCoopStats");
-            //}
-
             [HarmonyPrefix]
-            public static bool Prefix(/*CharacterStats __instance*/)
+            public static bool Prefix(CharacterStats __instance)
             {
-            //    Character _char = __instance.GetComponent<Character>();
+                Character _char = __instance.GetComponent<Character>();
 
-            //    if ((!(bool)Main.playerConfig.GetValue(Settings.toggleSwitch) && !(bool)Main.aiConfig.GetValue(Settings.toggleSwitch)) || NetworkLevelLoader.Instance.IsGameplayPaused || (!_char.IsStartInitDone || !_char.IsLateInitDone))
-            //    {
-            //        return true;
-            //    }
+                if ((!(bool)Main.playerConfig.GetValue(Settings.toggleSwitch) && !(bool)Main.aiConfig.GetValue(Settings.toggleSwitch)) || NetworkLevelLoader.Instance.IsGameplayPaused || (!_char.IsStartInitDone || !_char.IsLateInitDone))
+                {
+                    return true;
+                }
 
-            //    if (PhotonNetwork.isMasterClient)
-            //    {
-            //        if (!_char.IsAI)
-            //        {
-            //            if ((bool)Main.playerConfig.GetValue(Settings.toggleSwitch))
-            //            {
-            //                instance.ApplyCustomStats(_char, Main.playerConfig, Settings.playerStats);
-            //            }
-            //        }
-            //        else
-            //        {
-            //            if ((bool)Main.aiConfig.GetValue(Settings.toggleSwitch))
-            //            {
-            //                instance.ApplyCustomStats(_char, Main.aiConfig, Settings.aiStats);
-            //            }
-            //        }
-            //    }
-            //    else
-            //    {
-            //        if (instance.currentPlayerSyncInfo == null || instance.currentAiSyncInfo == null)
-            //        {
-            //            instance.StartCoroutine(instance.CO_InvokeOrig(__instance));
-            //        }
-            //    }
+                if (PhotonNetwork.isMasterClient)
+                {
+                    if (!_char.IsAI)
+                    {
+                        if ((bool)Main.playerConfig.GetValue(Settings.toggleSwitch))
+                        {
+                            instance.ApplyCustomStats(_char, Main.playerConfig, Settings.playerStats);
+                        }
+                    }
+                    else
+                    {
+                        if ((bool)Main.aiConfig.GetValue(Settings.toggleSwitch))
+                        {
+                            instance.ApplyCustomStats(_char, Main.aiConfig, Settings.aiStats);
+                        }
+                    }
+                }
 
                 return false;
             }
