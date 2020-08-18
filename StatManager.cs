@@ -680,6 +680,11 @@ namespace CustomGameStats
                 }
                 else
                 {
+                    if ((!(bool)instance.currentPlayerSyncInfo.GetValue(Settings.toggleSwitch) && !(bool)instance.currentAiSyncInfo.GetValue(Settings.toggleSwitch)) || NetworkLevelLoader.Instance.IsGameplayPaused || (!_char.IsStartInitDone || !_char.IsLateInitDone))
+                    {
+                        return true;
+                    }
+
                     if (!_char.IsAI)
                     {
                         if (instance.currentPlayerSyncInfo != null)
