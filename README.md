@@ -1,11 +1,12 @@
 # CustomGameStats
 <strong>Outward mod allowing the customization of character's stats.</strong>
 
-HUGE shout-out to OutlanderSinai! Their code provided the basis for the code of this mod. If interested check out their <a href="https://github.com/sinaioutlander">GitHub</a> and mods on the <a href="https://www.nexusmods.com/users/68319717?tab=user+files">Nexus</a>. Again, thanks a bunch!
+<ins>HUGE</ins> shout-out to Sinai! Their code provided the basis for the code of this mod. If interested check out their <a href="https://github.com/sinai-dev">GitHub</a> and mods on the <a href="https://www.nexusmods.com/users/68319717?tab=user+files">Nexus</a>. Again, thanks a bunch!
 
 <strong>Requires:</strong>
-  - <a href=https://github.com/BepInEx/BepInEx>BepInEx</a>
-  - <a href=https://www.nexusmods.com/outward/mods/110>SharedModConfig</a>
+  - <a href="https://github.com/BepInEx/BepInEx">BepInEx</a>
+  - <a href="https://www.nexusmods.com/outward/mods/110">SharedModConfig</a><br>
+  <i>(SharedModConfig requires <a href="https://www.nexusmods.com/outward/mods/96">SideLoader</a>!)</i>
   
 <strong>Installation:</strong><br>
   <b>1. </b> Navigate to your Outward game folder. <i>(Usually, *\Steam\steamapps\common\Outward\)</i><br>
