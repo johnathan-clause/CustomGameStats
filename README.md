@@ -1,8 +1,6 @@
 # CustomGameStats
 <strong>Outward mod allowing the customization of character's stats.</strong>
 
-<ins>HUGE</ins> shout-out to Sinai! Their code provided the basis for the code of this mod. If interested check out their <a href="https://github.com/sinai-dev">GitHub</a> and mods on the <a href="https://www.nexusmods.com/users/68319717?tab=user+files">Nexus</a>. Again, thanks a bunch!
-
 <strong>Requires:</strong>
   - <a href="https://github.com/BepInEx/BepInEx">BepInEx</a>
   - <a href="https://www.nexusmods.com/outward/mods/110">SharedModConfig</a><br>
