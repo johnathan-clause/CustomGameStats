@@ -346,8 +346,6 @@ namespace CustomGameStats
                 _lastVitals.Add(_char.UID, _ratios);
                 SaveVitalsInfo();
             }
-
-            Debug.Log(_char.Name + "_" + _char.UID + "'s MaxHealth: " + _char.Stats.MaxHealth);
         }
 
         private void SetCustomStat(CharacterStats _stats, string _stackSource, Tag _tag, float _val, bool _mult, ModConfig _config)
@@ -556,12 +554,9 @@ namespace CustomGameStats
 
         private void UpdateVitals(CharacterStats _stats, VitalsInfo _ratios, ModConfig _config)
         {
-            Debug.Log(_stats.GetComponent<Character>().Name + "'s vitals are being updated...");
-            Debug.Log("GameBehaviour: " + (bool)_config.GetValue(Settings.gameBehaviour));
-            Debug.Log("Toggle: " + (bool)_config.GetValue(Settings.toggleSwitch));
             float _hp, _hpb, _sp, _spb, _mp, _mpb;
             _stats.RefreshVitalMaxStat();
-            if (!(bool)_config.GetValue(Settings.gameBehaviour))
+            if (!(bool)_config.GetValue(Settings.gameBehaviour) && !_stats.GetComponent<Character>().IsAI)
             {
                 _hp = SaveManager.Instance.GetCharacterSave(_stats.GetComponent<Character>().UID).PSave.Health;
                 _hpb = SaveManager.Instance.GetCharacterSave(_stats.GetComponent<Character>().UID).PSave.BurntHealth;
