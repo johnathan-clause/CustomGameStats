@@ -12,7 +12,7 @@ namespace CustomGameStats
     {
         public const string GUID = "com.theinterstice.customgamestats";
         public const string NAME = "Custom Game Stats";
-        public const string VERSION = "2.1.1";
+        public const string VERSION = "2.1.2";
 
         public const string DEPENDANT = "com.sinai.SharedModConfig";
 
