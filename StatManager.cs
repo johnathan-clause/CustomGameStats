@@ -1,22 +1,21 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using HarmonyLib;
+using Photon;
 using SharedModConfig;
-using uNature.Core.Extensions;
 using UnityEngine;
 
 namespace CustomGameStats
 {
-    public class StatManager : MonoBehaviour
+    public class StatManager : PunBehaviour
     {
         public static StatManager instance;
 
         public ModConfig currentPlayerSyncInfo;
         public ModConfig currentAiSyncInfo;
-        public bool isPlayerInfoSynced = false;
-        public bool isAiInfoSynced = false;
+        public bool playerSyncInit = false;
+        public bool aiSyncInit = false;
 
         private static readonly string _dir = @"Mods\ModConfigs\";
         private static readonly string _file = _dir + Settings.modName;
@@ -25,7 +24,6 @@ namespace CustomGameStats
         private readonly Dictionary<string, VitalsInfo> _lastVitals = new Dictionary<string, VitalsInfo>();
 
         private string _currentHostUID = "";
-        private bool _vitalsUpdated = false;
         private bool _checkSplit = false;
         private bool _isOnline = false;
         private float _lastVitalsUpdate = -12f;
@@ -41,7 +39,7 @@ namespace CustomGameStats
             Main.aiConfig.OnSettingsSaved += AiSyncHandler;
         }
 
-        internal void Update()
+        internal void LateUpdate()
         {
             if (Global.Lobby.PlayersInLobbyCount < 1 || NetworkLevelLoader.Instance.IsGameplayPaused || NetworkLevelLoader.Instance.IsGameplayLoading)
             {
@@ -56,36 +54,37 @@ namespace CustomGameStats
                     UpdateCustomStats(Main.playerConfig);
                 }
 
-                if (!PhotonNetwork.offlineMode && !PhotonNetwork.isMasterClient)
+                if (!PhotonNetwork.offlineMode && PhotonNetwork.isNonMasterClientInRoom)
                 {
                     if (!_isOnline)
                     {
                         _isOnline = true;
                     }
 
-                    if (UpdateSyncInfo())
+                    if (playerSyncInit && aiSyncInit && UpdateSyncInfo())
                     {
-                        RPCManager.instance.RequestSync();
+                        RequestSync();
                     }
                 }
             }
             else
             {
-                _checkSplit = true;
-
-                if (_isOnline)
+                if (_isOnline && PhotonNetwork.connected)
                 {
                     _isOnline = false;
-                    isPlayerInfoSynced = false;
+                    _currentHostUID = "";
+                    playerSyncInit = false;
                     currentPlayerSyncInfo = null;
-                    isAiInfoSynced = false;
+                    aiSyncInit = false;
                     currentAiSyncInfo = null;
                     UpdateCustomStats(Main.playerConfig);
                     UpdateCustomStats(Main.aiConfig);
                 }
+
+                _checkSplit = true;
             }
 
-            if (UpdateVitalsInfo() && _vitalsUpdated)
+            if (UpdateVitalsInfo())
             {
                 SaveVitalsInfo();
             }
@@ -93,16 +92,22 @@ namespace CustomGameStats
 
         public void SetPlayerSyncInfo()  //client
         {
-            instance.isPlayerInfoSynced = true;
             instance._currentHostUID = CharacterManager.Instance.GetWorldHostCharacter()?.UID;
-            UpdateCustomStats(instance.currentPlayerSyncInfo);
+
+            if (playerSyncInit)
+            {
+                UpdateCustomStats(instance.currentPlayerSyncInfo);
+            }
         }
 
         public void SetAiSyncInfo()  //client
         {
-            instance.isAiInfoSynced = true;
             instance._currentHostUID = CharacterManager.Instance.GetWorldHostCharacter()?.UID;
-            UpdateCustomStats(instance.currentAiSyncInfo);
+
+            if (aiSyncInit)
+            {
+                UpdateCustomStats(instance.currentAiSyncInfo);
+            }
         }
 
         public void SetSyncBoolInfo(string _name, bool _bool, string _flag)  //client
@@ -131,30 +136,34 @@ namespace CustomGameStats
             }
         }
 
-        private static void PlayerSyncHandler()
+        private static void PlayerSyncHandler()  //host
         {
             if (Global.Lobby.PlayersInLobbyCount < 1) { return; }
-            
-            if (!PhotonNetwork.offlineMode && PhotonNetwork.isMasterClient)
+
+            if (!PhotonNetwork.offlineMode && !PhotonNetwork.isNonMasterClientInRoom)
             {
-                instance.isPlayerInfoSynced = false;
                 RPCManager.instance.PlayerSync();
             }
 
-            instance.UpdateCustomStats(Main.playerConfig);
+            if (PhotonNetwork.isMasterClient)
+            {
+                instance.UpdateCustomStats(Main.playerConfig);
+            }
         }
 
-        private static void AiSyncHandler()
+        private static void AiSyncHandler()  //host
         {
             if (Global.Lobby.PlayersInLobbyCount < 1) { return; }
 
-            if (!PhotonNetwork.offlineMode && PhotonNetwork.isMasterClient)
+            if (!PhotonNetwork.offlineMode && !PhotonNetwork.isNonMasterClientInRoom)
             {
-                instance.isAiInfoSynced = false;
                 RPCManager.instance.AiSync();
             }
 
-            instance.UpdateCustomStats(Main.aiConfig);
+            if (PhotonNetwork.isMasterClient)
+            {
+                instance.UpdateCustomStats(Main.aiConfig);
+            }
         }
 
         private static float ModifyLogic(bool _op, float _base, float _value, float _limiter)
@@ -215,6 +224,19 @@ namespace CustomGameStats
             }
         }
 
+        private void RequestSync()  //client
+        {
+            if (currentPlayerSyncInfo == null)
+            {
+                RPCManager.instance.RequestPlayerSync();
+            }
+            
+            if (currentAiSyncInfo == null)
+            {
+                RPCManager.instance.RequestAiSync();
+            }
+        }
+
         private bool UpdateSyncInfo()
         {
             if (CharacterManager.Instance.GetWorldHostCharacter() is Character host)
@@ -225,7 +247,7 @@ namespace CustomGameStats
                 }
                 else
                 {
-                    if (!isAiInfoSynced || !isPlayerInfoSynced)
+                    if (currentPlayerSyncInfo == null || currentAiSyncInfo == null)
                     {
                         return true;
                     }
@@ -291,6 +313,8 @@ namespace CustomGameStats
                 burntManaRatio = _char.Stats.BurntManaRatio
             };
 
+            _char.Stats.RestoreAllVitals();
+
             foreach (BBSetting _bbs in _config.Settings)
             {
                 if (_bbs is FloatSetting _f)
@@ -310,7 +334,7 @@ namespace CustomGameStats
                 }
             }
 
-            UpdateVitals(_char.Stats, _ratios, _config);
+            instance.UpdateVitals(_char.Stats, _ratios, _config);
 
             if (!_char.IsAI)
             {
@@ -532,6 +556,9 @@ namespace CustomGameStats
 
         private void UpdateVitals(CharacterStats _stats, VitalsInfo _ratios, ModConfig _config)
         {
+            Debug.Log(_stats.GetComponent<Character>().Name + "'s vitals are being updated...");
+            Debug.Log("GameBehaviour: " + (bool)_config.GetValue(Settings.gameBehaviour));
+            Debug.Log("Toggle: " + (bool)_config.GetValue(Settings.toggleSwitch));
             float _hp, _hpb, _sp, _spb, _mp, _mpb;
             _stats.RefreshVitalMaxStat();
             if (!(bool)_config.GetValue(Settings.gameBehaviour))
@@ -552,6 +579,7 @@ namespace CustomGameStats
                 _mp = _stats.MaxMana * _ratios.manaRatio;
                 _mpb = _stats.MaxMana * _ratios.burntManaRatio;
             }
+
             _stats.SetHealth(_hp);
             AT.SetValue(_hpb, typeof(CharacterStats), _stats, "m_burntHealth");
             AT.SetValue(_sp, typeof(CharacterStats), _stats, "m_stamina");
@@ -570,7 +598,6 @@ namespace CustomGameStats
                 {
                     if (_lastVitals.ContainsKey(c.UID) && c.HealthRatio != _lastVitals.GetValueSafe(c.UID).healthRatio && c.HealthRatio <= 1)
                     {
-                        _vitalsUpdated = true;
                         _boo = true;
                     }
                 }
@@ -608,7 +635,7 @@ namespace CustomGameStats
 
             foreach (Character c in CharacterManager.Instance.Characters.Values)
             {
-                if (!c.IsAI && c.IsLocalPlayer)
+                if (c.IsLocalPlayer)
                 {
                     string _path = _file + "_" + c.UID + _ext;
                     VitalsInfo _vitals = new VitalsInfo
@@ -632,7 +659,6 @@ namespace CustomGameStats
                     }
 
                     _lastVitals.Add(c.UID, _vitals);
-                    _vitalsUpdated = false;
                     File.WriteAllText(_path, JsonUtility.ToJson(_vitals));
                 }
             }
@@ -651,7 +677,7 @@ namespace CustomGameStats
                     return true;
                 }
 
-                if (PhotonNetwork.isMasterClient)
+                if (!PhotonNetwork.isNonMasterClientInRoom)
                 {
                     if (!_char.IsAI)
                     {
@@ -678,9 +704,14 @@ namespace CustomGameStats
                 }
                 else
                 {
+                    if (!instance.playerSyncInit || !instance.aiSyncInit)
+                    {
+                        instance.RequestSync();
+                    }
+
                     if (!_char.IsAI)
                     {
-                        if (instance.currentPlayerSyncInfo != null)
+                        if (instance.currentPlayerSyncInfo != null && instance.playerSyncInit)
                         {
                             if ((bool)instance.currentPlayerSyncInfo.GetValue(Settings.toggleSwitch))
                             {
@@ -694,7 +725,7 @@ namespace CustomGameStats
                     }
                     else
                     {
-                        if (instance.currentAiSyncInfo != null)
+                        if (instance.currentAiSyncInfo != null && instance.aiSyncInit)
                         {
                             if ((bool)instance.currentAiSyncInfo.GetValue(Settings.toggleSwitch))
                             {

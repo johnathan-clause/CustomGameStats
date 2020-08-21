@@ -20,29 +20,50 @@ namespace CustomGameStats
             photon.viewID = 777;
         }
 
-        public void RequestSync()  //client
+        public void RequestPlayerSync()  //client
         {
             InitPlayerSyncInfo();
+            if (!PhotonNetwork.offlineMode)
+            {
+                photonView.RPC("RequestPlayerSyncRPC", PhotonNetwork.masterClient, new object[0]);
+            }
+        }
+
+        public void RequestAiSync()  //client
+        {
             InitAiSyncInfo();
-            photonView.RPC("RequestSyncRPC", PhotonNetwork.masterClient, new object[0]);
+            if (!PhotonNetwork.offlineMode)
+            {
+                photonView.RPC("RequestAiSyncRPC", PhotonNetwork.masterClient, new object[0]);
+            }
         }
 
         public void PlayerSync() //host
         {
-            photonView.RPC("PlayerSyncRPC", PhotonTargets.All, new object[0]);
+            if (!PhotonNetwork.offlineMode)
+            {
+                photonView.RPC("PlayerSyncRPC", PhotonTargets.All, new object[0]);
+            }
         }
 
         public void AiSync() //host
         {
-            photonView.RPC("AiSyncRPC", PhotonTargets.All, new object[0]);
+            if (!PhotonNetwork.offlineMode)
+            {
+                photonView.RPC("AiSyncRPC", PhotonTargets.All, new object[0]);
+            }
         }
 
         [PunRPC]
-        private void RequestSyncRPC()  //host
+        private void RequestPlayerSyncRPC()  //host
         {
-            StatManager.instance.isPlayerInfoSynced = false;
-            StatManager.instance.isAiInfoSynced = false;
-            StartCoroutine(CO_SetSyncInfo());
+            StartCoroutine(CO_SetPlayerSyncInfo());
+        }
+
+        [PunRPC]
+        private void RequestAiSyncRPC()  //host
+        {
+            StartCoroutine(CO_SetAiSyncInfo());
         }
 
         private List<BBSetting> InitSyncSettings(string _flag)  //client
@@ -58,39 +79,33 @@ namespace CustomGameStats
 
         private void InitPlayerSyncInfo()  //client
         {
-            if (StatManager.instance.currentPlayerSyncInfo == null)
+            StatManager.instance.currentPlayerSyncInfo = new ModConfig
             {
-                StatManager.instance.currentPlayerSyncInfo = new ModConfig
-                {
-                    ModName = Settings.modName + "_Player",
-                    SettingsVersion = 1.0,
-                    Settings = InitSyncSettings("player")
-                };
+                ModName = Settings.modName + "_Player",
+                SettingsVersion = 1.0,
+                Settings = InitSyncSettings("player")
+            };
 
-                Settings.SoftRegister(StatManager.instance.currentPlayerSyncInfo);
-            }
+            Settings.SoftRegister(StatManager.instance.currentPlayerSyncInfo);
         }
 
         private void InitAiSyncInfo()  //client
         {
-            if (StatManager.instance.currentAiSyncInfo == null)
+            StatManager.instance.currentAiSyncInfo = new ModConfig
             {
-                StatManager.instance.currentAiSyncInfo = new ModConfig
-                {
-                    ModName = Settings.modName + "_Ai",
-                    SettingsVersion = 1.0,
-                    Settings = InitSyncSettings("ai")
-                };
+                ModName = Settings.modName + "_Ai",
+                SettingsVersion = 1.0,
+                Settings = InitSyncSettings("ai")
+            };
 
-                Settings.SoftRegister(StatManager.instance.currentAiSyncInfo);
-            }
+            Settings.SoftRegister(StatManager.instance.currentAiSyncInfo);
         }
 
         private void SendBoolSetting(ModConfig _config, string _flag)  //host
         {
             foreach (BBSetting _bbs in _config.Settings)
             {
-                if (_bbs is BoolSetting _b)
+                if (_bbs is BoolSetting _b && !PhotonNetwork.offlineMode)
                 {
                     photonView.RPC("SendBoolSettingRPC", PhotonTargets.All, new object[]
                     {
@@ -106,7 +121,7 @@ namespace CustomGameStats
         {
             foreach (BBSetting _bbs in _config.Settings)
             {
-                if (_bbs is FloatSetting _f)
+                if (_bbs is FloatSetting _f && !PhotonNetwork.offlineMode)
                 {
                     photonView.RPC("SendFloatSettingRPC", PhotonTargets.All, new object[]
                     {
@@ -124,28 +139,33 @@ namespace CustomGameStats
             SendFloatSetting(_config, _flag);
         }
 
-        private IEnumerator CO_SetSyncInfo()  //host
+        private IEnumerator CO_SetPlayerSyncInfo()  //host
         {
             while (!NetworkLevelLoader.Instance.AllPlayerDoneLoading)
             {
                 yield return new WaitForSeconds(0.2f);
             }
 
-            if (!PhotonNetwork.isNonMasterClientInRoom)
-            {
-                if (!StatManager.instance.isAiInfoSynced)
-                {
-                    SendSyncSettings(Main.aiConfig, "ai");
-                    photonView.RPC("SetAiSyncInfoRPC", PhotonTargets.All, new object[0]);
-                    StatManager.instance.isAiInfoSynced = true;
-                }
+            SendSyncSettings(Main.playerConfig, "player");
 
-                if (!StatManager.instance.isPlayerInfoSynced)
-                {
-                    SendSyncSettings(Main.playerConfig, "player");
-                    photonView.RPC("SetPlayerSyncInfoRPC", PhotonTargets.All, new object[0]);
-                    StatManager.instance.isPlayerInfoSynced = true;
-                }
+            if (!PhotonNetwork.offlineMode)
+            {
+                photonView.RPC("SetPlayerSyncInfoRPC", PhotonTargets.All, new object[0]);
+            }
+        }
+
+        private IEnumerator CO_SetAiSyncInfo()  //host
+        {
+            while (!NetworkLevelLoader.Instance.AllPlayerDoneLoading)
+            {
+                yield return new WaitForSeconds(0.2f);
+            }
+
+            SendSyncSettings(Main.aiConfig, "ai");
+
+            if (!PhotonNetwork.offlineMode)
+            {
+                photonView.RPC("SetAiSyncInfoRPC", PhotonTargets.All, new object[0]);
             }
         }
 
@@ -170,10 +190,7 @@ namespace CustomGameStats
         [PunRPC]
         private void PlayerSyncRPC()  //client
         {
-            if (PhotonNetwork.isNonMasterClientInRoom)
-            {
-                StatManager.instance.isPlayerInfoSynced = false;
-            }
+            StatManager.instance.currentPlayerSyncInfo = null;
         }
 
         [PunRPC]
@@ -181,6 +198,11 @@ namespace CustomGameStats
         {
             if (PhotonNetwork.isNonMasterClientInRoom)
             {
+                if (!StatManager.instance.playerSyncInit)
+                {
+                    StatManager.instance.playerSyncInit = true;
+                }
+
                 StatManager.instance.SetPlayerSyncInfo();
             }
         }
@@ -188,10 +210,7 @@ namespace CustomGameStats
         [PunRPC]
         private void AiSyncRPC()  //client
         {
-            if (PhotonNetwork.isNonMasterClientInRoom)
-            {
-                StatManager.instance.isAiInfoSynced = false;
-            }
+            StatManager.instance.currentAiSyncInfo = null;
         }
 
         [PunRPC]
@@ -199,6 +218,11 @@ namespace CustomGameStats
         {
             if (PhotonNetwork.isNonMasterClientInRoom)
             {
+                if (!StatManager.instance.aiSyncInit)
+                {
+                    StatManager.instance.aiSyncInit = true;
+                }
+
                 StatManager.instance.SetAiSyncInfo();
             }
         }
