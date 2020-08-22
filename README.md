@@ -1,5 +1,5 @@
-# CustomGameStats
-<strong>Outward mod allowing the customization of character's stats.</strong>
+<h1><a href="https://www.nexusmods.com/outward/mods/161">CustomGameStats</a></h1>
+<strong>Outward mod allowing the customization of character's stats.</strong><br>
 
 <strong>Requires:</strong>
   - <a href="https://github.com/BepInEx/BepInEx">BepInEx</a>
