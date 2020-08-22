@@ -556,7 +556,7 @@ namespace CustomGameStats
         {
             float _hp, _hpb, _sp, _spb, _mp, _mpb;
             _stats.RefreshVitalMaxStat();
-            if (!(bool)_config.GetValue(Settings.gameBehaviour) && !_stats.GetComponent<Character>().IsAI)
+            if (!(bool)_config.GetValue(Settings.gameBehaviour) && _stats.GetComponent<Character>().IsLocalPlayer)
             {
                 _hp = SaveManager.Instance.GetCharacterSave(_stats.GetComponent<Character>().UID).PSave.Health;
                 _hpb = SaveManager.Instance.GetCharacterSave(_stats.GetComponent<Character>().UID).PSave.BurntHealth;
