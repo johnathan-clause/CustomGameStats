@@ -369,7 +369,7 @@ namespace CustomGameStats
 
             if (!character.IsAI)
             {
-                SaveVitalsInfo();
+                SaveVitalsInfo(character.UID);
             }
         }
 
@@ -377,6 +377,7 @@ namespace CustomGameStats
         private void SetCustomStat(CharacterStats stats, string stackSource, Tag statTag, float value, bool mult, ModConfig config)
         {
             ClearCustomStat(stats, statTag, stackSource, mult);
+            stats.RefreshVitalMaxStat();
             Stat[] _dmg = (Stat[])AT.GetValue(typeof(CharacterStats), stats, "m_damageTypesModifier");
             Stat[] _pro = (Stat[])AT.GetValue(typeof(CharacterStats), stats, "m_damageProtection");
             Stat[] _res = (Stat[])AT.GetValue(typeof(CharacterStats), stats, "m_damageResistance");
@@ -647,7 +648,7 @@ namespace CustomGameStats
             return null;
         }
 
-        private void SaveVitalsInfo()
+        private void SaveVitalsInfo(string targetUid = null)
         {
             if (!Directory.Exists(_dir))
             {
@@ -656,6 +657,14 @@ namespace CustomGameStats
 
             foreach (SplitPlayer _player in SplitScreenManager.Instance.LocalPlayers)
             {
+                if (targetUid != null)
+                {
+                    if (_player.AssignedCharacter.UID != targetUid)
+                    {
+                        continue;
+                    }
+                }
+
                 string _path = $"{_file}_{ _player.AssignedCharacter.UID }{ _ext }";
                 VitalsInfo _vitals = new VitalsInfo
                 {
@@ -679,7 +688,6 @@ namespace CustomGameStats
 
                 _lastVitals.Add(_player.AssignedCharacter.UID, _vitals);
                 File.WriteAllText(_path, JsonUtility.ToJson(_vitals));
-                Debug.Log($"Saving vitals for { _player.AssignedCharacter.Name }_{ _player.AssignedCharacter.UID }!");
             }
         }
 

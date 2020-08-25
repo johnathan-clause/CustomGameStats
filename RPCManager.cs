@@ -93,7 +93,7 @@ namespace CustomGameStats
         {
             StatManager.Instance.CurrentAISyncInfo = new ModConfig
             {
-                ModName = Settings.ModName + "_Ai",
+                ModName = Settings.ModName + "_AI",
                 SettingsVersion = 1.0,
                 Settings = SyncSettingsInit(false)
             };
