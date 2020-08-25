@@ -78,7 +78,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Main.cs" />
+    <Compile Include="CustomGameStats.cs" />
     <Compile Include="RPCManager.cs" />
     <Compile Include="StatManager.cs" />
     <Compile Include="util\AT.cs" />

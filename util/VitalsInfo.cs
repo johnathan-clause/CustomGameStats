@@ -2,11 +2,11 @@
 {
     public class VitalsInfo
     {
-        public float healthRatio;
-        public float burntHealthRatio;
-        public float staminaRatio;
-        public float burntStaminaRatio;
-        public float manaRatio;
-        public float burntManaRatio;
+        public float HealthRatio;
+        public float BurntHealthRatio;
+        public float StaminaRatio;
+        public float BurntStaminaRatio;
+        public float ManaRatio;
+        public float BurntManaRatio;
     }
 }

@@ -6,208 +6,208 @@ namespace CustomGameStats
     public class Settings
     {
         //mod naming
-        public static string modName = "CustomGameStats";
-        public static string playerStatsTitle = " - Player Stats";
-        public static string aiStatsTitle = " - AI Stats";
+        public static string ModName { get; private set; } = "CustomGameStats";
+        public static string PlayerStatsTitle { get; private set; } = " - Player Stats";
+        public static string AIStatsTitle { get; private set; }  = " - AI Stats";
 
         //rules names
-        public static string toggleSwitch = "ToggleSwitch";
-        public static string gameBehaviour = "GameBehaviour";
-        public static string strictMinimum = "StrictMinimum";
+        public static string ToggleSwitch { get; private set; } = "ToggleSwitch";
+        public static string GameBehaviour { get; private set; } = "GameBehaviour";
+        public static string StrictMinimum { get; private set; } = "StrictMinimum";
 
         //rules section
-        public static string toggleSection = "Toggle Custom Stats";
-        public static string behaviourSection = "Enforce Game Behaviour";
-        public static string strictSection = "Enforce Strict Minimums";
+        public static string ToggleSection { get; private set; } = "Toggle Custom Stats";
+        public static string BehaviourSection { get; private set; } = "Enforce Game Behaviour";
+        public static string StrictSection { get; private set; }  = "Enforce Strict Minimums";
 
         //descriptors
-        public static string multDesc = "Is a percent modifier?";
-        public static string modDesc = "Modifier value: ";
-        public static string toggleDesc = "Enable/disable";
-        public static string behaviourDesc = "Prevents unexpected behaviour to occur. Use with caution!";
-        public static string strictDesc = "Prevents values from being reduced below zero. Do not touch unless you know what you are doing! (Ignored if Enforce Game Behaviour enabled)";
+        public static string MultDesc { get; private set; } = "Is a percent modifier?";
+        public static string ModDesc { get; private set; } = "Modifier value: ";
+        public static string ToggleDesc { get; private set; }  = "Enable/disable";
+        public static string BehaviourDesc { get; private set; } = "Prevents unexpected behaviour to occur. Use with caution!";
+        public static string StrictDesc { get; private set; } = "Prevents values from being reduced below zero. Do not touch unless you know what you are doing! (Ignored if Enforce Game Behaviour enabled)";
 
         //stat stacks
-        public static string playerStats = "PlayerStatStack";
-        public static string aiStats = "AiStatStack";
+        public static string PlayerStats { get; private set; }  = "PlayerStatStack";
+        public static string AIStats { get; private set; } = "AiStatStack";
 
         //stat minimums
-        public static float minimum = 0f;
-        public static float minimumMod = 0.01f;
+        public static float Minimum { get; private set; } = 0f;
+        public static float MinimumMod { get; private set; } = 0.01f;
 
         //stat names
-        public static string modMult = "Mult";
-        public static string foodDepleteMod = "FoodDepleteRate";
-        public static string drinkDepleteMod = "DrinkDepleteRate";
-        public static string sleepDepleteMod = "SleepDepleteRate";
-        public static string detectabilityMod = "Detectability";
-        public static string visualDetectabilityMod = "VisualDetectability";
-        public static string pouchCapacityMod = "PouchCapacity";
-        public static string foodEffectEfficiencyMod = "FoodEffectEfficiency";
-        public static string buyMod = "BuyModifier";
-        public static string sellMod = "SellModifier";
-        public static string healthMod = "MaxHealth";
-        public static string healthRegenMod = "HealthRegen";
-        public static string healthBurnMod = "HealthBurn";
-        public static string staminaMod = "MaxStamina";
-        public static string staminaRegenMod = "StaminaRegen";
-        public static string staminaUseMod = "StaminaUse";
-        public static string staminaCostReducMod = "StaminaCostReduction";
-        public static string staminaBurnMod = "StaminaBurn";
-        public static string manaMod = "MaxMana";
-        public static string manaRegenMod = "ManaRegen";
-        public static string manaUseMod = "ManaUse";
-        public static string manaBurnMod = "ManaBurn";
-        public static string impactMod = "Impact";
-        public static string allDamagesMod = "AllDamages";
-        public static string physicalDamageMod = "PhysicalDamage";
-        public static string etherealDamageMod = "EtherealDamage";
-        public static string decayDamageMod = "DecayDamage";
-        public static string electricDamageMod = "ElectricDamage";
-        public static string frostDamageMod = "FrostDamage";
-        public static string fireDamageMod = "FireDamage";
-        public static string darkDamageMod = "DarkDamage";
-        public static string lightDamageMod = "LightDamage";
-        public static string damageProtectionMod = "DamageProtection";
-        public static string physicalProtectionMod = "PhysicalProtection";
-        public static string etherealProtectionMod = "EtherealProtection";
-        public static string decayProtectionMod = "DecayProtection";
-        public static string electricProtectionMod = "ElectricProtection";
-        public static string frostProtectionMod = "FrostProtection";
-        public static string fireProtectionMod = "FireProtection";
-        public static string darkProtectionMod = "DarkProtection";
-        public static string lightProtectionMod = "LightProtection";
-        public static string allResistancesMod = "AllResistances";
-        public static string damageResistanceMod = "DamageResistance";
-        public static string physicalResistanceMod = "PhysicalResistance";
-        public static string etherealResistanceMod = "EtherealResistance";
-        public static string decayResistanceMod = "DecayResistance";
-        public static string electricResistanceMod = "ElectricResistance";
-        public static string frostResistanceMod = "FrostResistance";
-        public static string fireResistanceMod = "FireResistance";
-        public static string darkResistanceMod = "DarkResistance";
-        public static string lightResistanceMod = "LightResistance";
-        public static string impactResistanceMod = "ImpactResistance";
-        public static string stabilityRegenMod = "StabilityRegen";
-        public static string envColdProtectionMod = "EnvColdProtection";
-        public static string envHeatProtectionMod = "EnvHeatProtection";
-        public static string coldRegenMod = "ColdRegen";
-        public static string heatRegenMod = "HeatRegen";
-        public static string waterproofMod = "Waterproof";
-        public static string corruptionResistanceMod = "CorruptionResistance";
-        public static string temperatureMod = "TemperatureModifier";
-        public static string moveSpeedMod = "MovementSpeed";
-        public static string speedMod = "Speed";
-        public static string attackSpeedMod = "AttackSpeed";
-        public static string dodgeInvulnerabilityMod = "DodgeInvulnerabilityModifier";
-        public static string skillCooldownMod = "SkillCooldownModifier";
+        public static string ModMult { get; private set; } = "Mult";
+        public static string FoodDepleteMod { get; private set; } = "FoodDepleteRate";
+        public static string DrinkDepleteMod { get; private set; } = "DrinkDepleteRate";
+        public static string SleepDepleteMod { get; private set; } = "SleepDepleteRate";
+        public static string DetectabilityMod { get; private set; } = "Detectability";
+        public static string VisualDetectabilityMod { get; private set; } = "VisualDetectability";
+        public static string PouchCapacityMod { get; private set; }  = "PouchCapacity";
+        public static string FoodEffectEfficiencyMod { get; private set; } = "FoodEffectEfficiency";
+        public static string BuyMod { get; private set; }  = "BuyModifier";
+        public static string SellMod { get; private set; } = "SellModifier";
+        public static string HealthMod { get; private set; } = "MaxHealth";
+        public static string HealthRegenMod { get; private set; } = "HealthRegen";
+        public static string HealthBurnMod { get; private set; } = "HealthBurn";
+        public static string StaminaMod { get; private set; } = "MaxStamina";
+        public static string StaminaRegenMod { get; private set; } = "StaminaRegen";
+        public static string StaminaUseMod { get; private set; } = "StaminaUse";
+        public static string StaminaCostReducMod { get; private set; } = "StaminaCostReduction";
+        public static string StaminaBurnMod { get; private set; } = "StaminaBurn";
+        public static string ManaMod { get; private set; } = "MaxMana";
+        public static string ManaRegenMod { get; private set; }  = "ManaRegen";
+        public static string ManaUseMod { get; private set; }  = "ManaUse";
+        public static string ManaBurnMod { get; private set; } = "ManaBurn";
+        public static string ImpactMod { get; private set; } = "Impact";
+        public static string AllDamagesMod { get; private set; }  = "AllDamages";
+        public static string PhysicalDamageMod { get; private set; } = "PhysicalDamage";
+        public static string EtherealDamageMod { get; private set; }  = "EtherealDamage";
+        public static string DecayDamageMod { get; private set; }  = "DecayDamage";
+        public static string ElectricDamageMod { get; private set; } = "ElectricDamage";
+        public static string FrostDamageMod { get; private set; }  = "FrostDamage";
+        public static string FireDamageMod { get; private set; } = "FireDamage";
+        public static string DarkDamageMod { get; private set; }  = "DarkDamage";
+        public static string LightDamageMod { get; private set; } = "LightDamage";
+        public static string DamageProtectionMod { get; private set; }  = "DamageProtection";
+        public static string PhysicalProtectionMod { get; private set; }  = "PhysicalProtection";
+        public static string EtherealProtectionMod { get; private set; } = "EtherealProtection";
+        public static string DecayProtectionMod { get; private set; } = "DecayProtection";
+        public static string ElectricProtectionMod { get; private set; } = "ElectricProtection";
+        public static string FrostProtectionMod { get; private set; } = "FrostProtection";
+        public static string FireProtectionMod { get; private set; } = "FireProtection";
+        public static string DarkProtectionMod { get; private set; } = "DarkProtection";
+        public static string LightProtectionMod { get; private set; } = "LightProtection";
+        public static string AllResistancesMod { get; private set; } = "AllResistances";
+        public static string DamageResistanceMod { get; private set; } = "DamageResistance";
+        public static string PhysicalResistanceMod { get; private set; } = "PhysicalResistance";
+        public static string EtherealResistanceMod { get; private set; } = "EtherealResistance";
+        public static string DecayResistanceMod { get; private set; } = "DecayResistance";
+        public static string ElectricResistanceMod { get; private set; } = "ElectricResistance";
+        public static string FrostResistanceMod { get; private set; } = "FrostResistance";
+        public static string FireResistanceMod { get; private set; } = "FireResistance";
+        public static string DarkResistanceMod { get; private set; } = "DarkResistance";
+        public static string LightResistanceMod { get; private set; } = "LightResistance";
+        public static string ImpactResistanceMod { get; private set; } = "ImpactResistance";
+        public static string StabilityRegenMod { get; private set; } = "StabilityRegen";
+        public static string EnvColdProtectionMod { get; private set; } = "EnvColdProtection";
+        public static string EnvHeatProtectionMod { get; private set; } = "EnvHeatProtection";
+        public static string ColdRegenMod { get; private set; } = "ColdRegen";
+        public static string HeatRegenMod { get; private set; } = "HeatRegen";
+        public static string WaterproofMod { get; private set; } = "Waterproof";
+        public static string CorruptionResistanceMod { get; private set; } = "CorruptionResistance";
+        public static string TemperatureMod { get; private set; } = "TemperatureModifier";
+        public static string MoveSpeedMod { get; private set; } = "MovementSpeed";
+        public static string SpeedMod { get; private set; } = "Speed";
+        public static string AttackSpeedMod { get; private set; } = "AttackSpeed";
+        public static string DodgeInvulnerabilityMod { get; private set; } = "DodgeInvulnerabilityModifier";
+        public static string SkillCooldownMod { get; private set; } = "SkillCooldownModifier";
 
         //stat sections
-        public static string foodDepleteSection = "Food Depletion Rate";
-        public static string drinkDepleteSection = "Drink Depletion Rate";
-        public static string sleepDepleteSection = "Sleep Depletion Rate";
-        public static string detectabilitySection = "Detectability";
-        public static string visualDetectabilitySection = "Visual Detectability";
-        public static string pouchCapacitySection = "Pouch Capacity";
-        public static string foodEffectEfficiencySection = "Food Efficiency";
-        public static string buySection = "Buying Rate";
-        public static string sellSection = "Selling Rate";
-        public static string healthSection = "Maximum Health";
-        public static string healthRegenSection = "Health Regeneration";
-        public static string healthBurnSection = "Health Burn Rate";
-        public static string staminaSection = "Maximum Stamina";
-        public static string staminaRegenSection = "Stamina Regeneration";
-        public static string staminaUseSection = "Stamina Usage Rate";
-        public static string staminaCostSection = "Stamina Cost Reduction";
-        public static string staminaBurnSection = "Stamina Burn Rate";
-        public static string manaSection = "Maximum Mana";
-        public static string manaRegenSection = "Mana Regeneration";
-        public static string manaUseSection = "Mana Usage Rate";
-        public static string manaBurnSection = "Mana Burn Rate";
-        public static string impactSection = "Impact Damage";
-        public static string allDamagesSection = "All Damages";
-        public static string physicalDamageSection = "Physical Damage";
-        public static string etherealDamageSection = "Ethereal Damage";
-        public static string decayDamageSection = "Decay Damage";
-        public static string electricDamageSection = "Electric Damage";
-        public static string frostDamageSection = "Frost Damage";
-        public static string fireDamageSection = "Fire Damage";
-        public static string darkDamageSection = "Dark Damage";
-        public static string lightDamageSection = "Light Damage";
-        public static string damageProtectionSection = "Damage Protection";
-        public static string physicalProtectionSection = "Physical Protection";
-        public static string etherealProtectionSection = "Ethereal Protection";
-        public static string decayProtectionSection = "Decay Protection";
-        public static string electricProtectionSection = "Electric Protection";
-        public static string frostProtectionSection = "Frost Protection";
-        public static string fireProtectionSection = "Fire Protection";
-        public static string darkProtectionSection = "Dark Protection";
-        public static string lightProtectionSection = "Light Protection";
-        public static string allResistancesSection = "All Resistances";
-        public static string damageResistanceSection = "Damage Resistance";
-        public static string physicalResistanceSection = "Physical Resistance";
-        public static string etherealResistanceSection = "Ethereal Resistance";
-        public static string decayResistanceSection = "Decay Resistance";
-        public static string electricResistanceSection = "Electric Resistance";
-        public static string frostResistanceSection = "Frost Resistance";
-        public static string fireResistanceSection = "Fire Resistance";
-        public static string darkResistanceSection = "Dark Resistance";
-        public static string lightResistanceSection = "Light Resistance";
-        public static string impactResistanceSection = "Impact Resistance";
-        public static string stabilityRegenSection = "Stability Regeneration";
-        public static string envColdProtectionSection = "Cold Weather Protection";
-        public static string envHeatProtectionSection = "Hot Weather Protection";
-        public static string coldRegenSection = "Cold Temp. Regeneration";
-        public static string heatRegenSection = "Hot Temp. Regeneration";
-        public static string waterproofSection = "Wet Weather Protection";
-        public static string corruptionResistanceSection = "Corruption Resistance";
-        public static string temperatureSection = "Temperature Rate";
-        public static string moveSpeedSection = "Movement Speed";
-        public static string speedSection = "Speed";
-        public static string attackSpeedSection = "Attack Speed";
-        public static string dodgeInvulnerabilitySection = "Dodge Rate";
-        public static string skillCooldownSection = "Skill Cooldown Rate";
+        public static string FoodDepleteSection { get; private set; } = "Food Depletion Rate";
+        public static string DrinkDepleteSection { get; private set; } = "Drink Depletion Rate";
+        public static string SleepDepleteSection { get; private set; } = "Sleep Depletion Rate";
+        public static string DetectabilitySection { get; private set; } = "Detectability";
+        public static string VisualDetectabilitySection { get; private set; } = "Visual Detectability";
+        public static string PouchCapacitySection { get; private set; } = "Pouch Capacity";
+        public static string FoodEffectEfficiencySection { get; private set; } = "Food Efficiency";
+        public static string BuySection { get; private set; } = "Buying Rate";
+        public static string SellSection { get; private set; } = "Selling Rate";
+        public static string HealthSection { get; private set; } = "Maximum Health";
+        public static string HealthRegenSection { get; private set; } = "Health Regeneration";
+        public static string HealthBurnSection { get; private set; } = "Health Burn Rate";
+        public static string StaminaSection { get; private set; } = "Maximum Stamina";
+        public static string StaminaRegenSection { get; private set; } = "Stamina Regeneration";
+        public static string StaminaUseSection { get; private set; } = "Stamina Usage Rate";
+        public static string StaminaCostSection { get; private set; } = "Stamina Cost Reduction";
+        public static string StaminaBurnSection { get; private set; } = "Stamina Burn Rate";
+        public static string ManaSection { get; private set; } = "Maximum Mana";
+        public static string ManaRegenSection { get; private set; } = "Mana Regeneration";
+        public static string ManaUseSection { get; private set; } = "Mana Usage Rate";
+        public static string ManaBurnSection { get; private set; } = "Mana Burn Rate";
+        public static string ImpactSection { get; private set; } = "Impact Damage";
+        public static string AllDamagesSection { get; private set; } = "All Damages";
+        public static string PhysicalDamageSection { get; private set; } = "Physical Damage";
+        public static string EtherealDamageSection { get; private set; } = "Ethereal Damage";
+        public static string DecayDamageSection { get; private set; } = "Decay Damage";
+        public static string ElectricDamageSection { get; private set; } = "Electric Damage";
+        public static string FrostDamageSection { get; private set; } = "Frost Damage";
+        public static string FireDamageSection { get; private set; } = "Fire Damage";
+        public static string DarkDamageSection { get; private set; } = "Dark Damage";
+        public static string LightDamageSection { get; private set; } = "Light Damage";
+        public static string DamageProtectionSection { get; private set; } = "Damage Protection";
+        public static string PhysicalProtectionSection { get; private set; } = "Physical Protection";
+        public static string EtherealProtectionSection { get; private set; } = "Ethereal Protection";
+        public static string DecayProtectionSection { get; private set; } = "Decay Protection";
+        public static string ElectricProtectionSection { get; private set; } = "Electric Protection";
+        public static string FrostProtectionSection { get; private set; } = "Frost Protection";
+        public static string FireProtectionSection { get; private set; } = "Fire Protection";
+        public static string DarkProtectionSection { get; private set; } = "Dark Protection";
+        public static string LightProtectionSection { get; private set; } = "Light Protection";
+        public static string AllResistancesSection { get; private set; } = "All Resistances";
+        public static string DamageResistanceSection { get; private set; } = "Damage Resistance";
+        public static string PhysicalResistanceSection { get; private set; } = "Physical Resistance";
+        public static string EtherealResistanceSection { get; private set; } = "Ethereal Resistance";
+        public static string DecayResistanceSection { get; private set; } = "Decay Resistance";
+        public static string ElectricResistanceSection { get; private set; } = "Electric Resistance";
+        public static string FrostResistanceSection { get; private set; } = "Frost Resistance";
+        public static string FireResistanceSection { get; private set; } = "Fire Resistance";
+        public static string DarkResistanceSection { get; private set; } = "Dark Resistance";
+        public static string LightResistanceSection { get; private set; } = "Light Resistance";
+        public static string ImpactResistanceSection { get; private set; } = "Impact Resistance";
+        public static string StabilityRegenSection { get; private set; } = "Stability Regeneration";
+        public static string EnvColdProtectionSection { get; private set; } = "Cold Weather Protection";
+        public static string EnvHeatProtectionSection { get; private set; } = "Hot Weather Protection";
+        public static string ColdRegenSection { get; private set; } = "Cold Temp. Regeneration";
+        public static string HeatRegenSection { get; private set; } = "Hot Temp. Regeneration";
+        public static string WaterproofSection { get; private set; } = "Wet Weather Protection";
+        public static string CorruptionResistanceSection { get; private set; } = "Corruption Resistance";
+        public static string TemperatureSection { get; private set; } = "Temperature Rate";
+        public static string MoveSpeedSection { get; private set; } = "Movement Speed";
+        public static string SpeedSection { get; private set; } = "Speed";
+        public static string AttackSpeedSection { get; private set; } = "Attack Speed";
+        public static string DodgeInvulnerabilitySection { get; private set; } = "Dodge Rate";
+        public static string SkillCooldownSection { get; private set; } = "Skill Cooldown Rate";
 
         //rules settings
-        public List<BBSetting> rulesSettings = new List<BBSetting>
+        public List<BBSetting> RulesSettings { get; private set; } = new List<BBSetting>
         {
             new BoolSetting
             {
-                Name = toggleSwitch,
-                SectionTitle = toggleSection,
-                Description = toggleDesc,
+                Name = ToggleSwitch,
+                SectionTitle = ToggleSection,
+                Description = ToggleDesc,
                 DefaultValue = true
             },
             new BoolSetting
             {
-                Name = gameBehaviour,
-                SectionTitle = behaviourSection,
-                Description = behaviourDesc,
+                Name = GameBehaviour,
+                SectionTitle = BehaviourSection,
+                Description = BehaviourDesc,
                 DefaultValue = true
             },
             new BoolSetting
             {
-                Name = strictMinimum,
-                SectionTitle = strictSection,
-                Description = strictDesc,
+                Name = StrictMinimum,
+                SectionTitle = StrictSection,
+                Description = StrictDesc,
                 DefaultValue = true
             }
         };
 
         //stat settings
-        public List<BBSetting> playerSettings = new List<BBSetting>
+        public List<BBSetting> PlayerSettings { get; private set; } = new List<BBSetting>
         {
             new BoolSetting
             {
-                Name = foodDepleteMod + modMult,
-                SectionTitle = foodDepleteSection,
-                Description = multDesc,
+                Name = FoodDepleteMod + ModMult,
+                SectionTitle = FoodDepleteSection,
+                Description = MultDesc,
                 DefaultValue = true
             },
             new FloatSetting
             {
-                Name = foodDepleteMod,
-                Description = modDesc,
+                Name = FoodDepleteMod,
+                Description = ModDesc,
                 DefaultValue = 0f,
                 MinValue = -500f,
                 MaxValue = 500f,
@@ -215,15 +215,15 @@ namespace CustomGameStats
             },
             new BoolSetting
             {
-                Name = drinkDepleteMod + modMult,
-                SectionTitle = drinkDepleteSection,
-                Description = multDesc,
+                Name = DrinkDepleteMod + ModMult,
+                SectionTitle = DrinkDepleteSection,
+                Description = MultDesc,
                 DefaultValue = true
             },
             new FloatSetting
             {
-                Name = drinkDepleteMod,
-                Description = modDesc,
+                Name = DrinkDepleteMod,
+                Description = ModDesc,
                 DefaultValue = 0f,
                 MinValue = -500f,
                 MaxValue = 500f,
@@ -231,15 +231,15 @@ namespace CustomGameStats
             },
             new BoolSetting
             {
-                Name = sleepDepleteMod + modMult,
-                SectionTitle = sleepDepleteSection,
-                Description = multDesc,
+                Name = SleepDepleteMod + ModMult,
+                SectionTitle = SleepDepleteSection,
+                Description = MultDesc,
                 DefaultValue = true
             },
             new FloatSetting
             {
-                Name = sleepDepleteMod,
-                Description = modDesc,
+                Name = SleepDepleteMod,
+                Description = ModDesc,
                 DefaultValue = 0f,
                 MinValue = -500f,
                 MaxValue = 500f,
@@ -247,15 +247,15 @@ namespace CustomGameStats
             },
             new BoolSetting
             {
-                Name = foodEffectEfficiencyMod + modMult,
-                SectionTitle = foodEffectEfficiencySection,
-                Description = multDesc,
+                Name = FoodEffectEfficiencyMod + ModMult,
+                SectionTitle = FoodEffectEfficiencySection,
+                Description = MultDesc,
                 DefaultValue = true
             },
             new FloatSetting
             {
-                Name = foodEffectEfficiencyMod,
-                Description = modDesc,
+                Name = FoodEffectEfficiencyMod,
+                Description = ModDesc,
                 DefaultValue = 0f,
                 MinValue = -500f,
                 MaxValue = 500f,
@@ -263,15 +263,15 @@ namespace CustomGameStats
             },
             new BoolSetting
             {
-                Name = pouchCapacityMod + modMult,
-                SectionTitle = pouchCapacitySection,
-                Description = multDesc,
+                Name = PouchCapacityMod + ModMult,
+                SectionTitle = PouchCapacitySection,
+                Description = MultDesc,
                 DefaultValue = false
             },
             new FloatSetting
             {
-                Name = pouchCapacityMod,
-                Description = modDesc,
+                Name = PouchCapacityMod,
+                Description = ModDesc,
                 DefaultValue = 0f,
                 MinValue = -500f,
                 MaxValue = 500f,
@@ -279,15 +279,15 @@ namespace CustomGameStats
             },
             new BoolSetting
             {
-                Name = buyMod + modMult,
-                SectionTitle = buySection,
-                Description = multDesc,
+                Name = BuyMod + ModMult,
+                SectionTitle = BuySection,
+                Description = MultDesc,
                 DefaultValue = true
             },
             new FloatSetting
             {
-                Name = buyMod,
-                Description = modDesc,
+                Name = BuyMod,
+                Description = ModDesc,
                 DefaultValue = 0f,
                 MinValue = -500f,
                 MaxValue = 500f,
@@ -295,15 +295,15 @@ namespace CustomGameStats
             },
             new BoolSetting
             {
-                Name = sellMod + modMult,
-                SectionTitle = sellSection,
-                Description = multDesc,
+                Name = SellMod + ModMult,
+                SectionTitle = SellSection,
+                Description = MultDesc,
                 DefaultValue = true
             },
             new FloatSetting
             {
-                Name = sellMod,
-                Description = modDesc,
+                Name = SellMod,
+                Description = ModDesc,
                 DefaultValue = 0f,
                 MinValue = -500f,
                 MaxValue = 500f,
@@ -311,15 +311,15 @@ namespace CustomGameStats
             },
             new BoolSetting
             {
-                Name = detectabilityMod + modMult,
-                SectionTitle = detectabilitySection,
-                Description = multDesc,
+                Name = DetectabilityMod + ModMult,
+                SectionTitle = DetectabilitySection,
+                Description = MultDesc,
                 DefaultValue = true
             },
             new FloatSetting
             {
-                Name = detectabilityMod,
-                Description = modDesc,
+                Name = DetectabilityMod,
+                Description = ModDesc,
                 DefaultValue = 0f,
                 MinValue = -500f,
                 MaxValue = 500f,
@@ -327,15 +327,15 @@ namespace CustomGameStats
             },
             new BoolSetting
             {
-                Name = visualDetectabilityMod + modMult,
-                SectionTitle = visualDetectabilitySection,
-                Description = multDesc,
+                Name = VisualDetectabilityMod + ModMult,
+                SectionTitle = VisualDetectabilitySection,
+                Description = MultDesc,
                 DefaultValue = true
             },
             new FloatSetting
             {
-                Name = visualDetectabilityMod,
-                Description = modDesc,
+                Name = VisualDetectabilityMod,
+                Description = ModDesc,
                 DefaultValue = 0f,
                 MinValue = -500f,
                 MaxValue = 500f,
@@ -343,19 +343,19 @@ namespace CustomGameStats
             }
         };
 
-        public List<BBSetting> characterSettings = new List<BBSetting>
+        public List<BBSetting> CharacterSettings { get; private set; } = new List<BBSetting>
         {
             new BoolSetting
             {
-                Name = temperatureMod + modMult,
-                SectionTitle = temperatureSection,
-                Description = multDesc,
+                Name = TemperatureMod + ModMult,
+                SectionTitle = TemperatureSection,
+                Description = MultDesc,
                 DefaultValue = true
             },
             new FloatSetting
             {
-                Name = temperatureMod,
-                Description = modDesc,
+                Name = TemperatureMod,
+                Description = ModDesc,
                 DefaultValue = 0f,
                 MinValue = -500f,
                 MaxValue = 500f,
@@ -363,15 +363,15 @@ namespace CustomGameStats
             },
             new BoolSetting
             {
-                Name = waterproofMod + modMult,
-                SectionTitle = waterproofSection,
-                Description = multDesc,
+                Name = WaterproofMod + ModMult,
+                SectionTitle = WaterproofSection,
+                Description = MultDesc,
                 DefaultValue = true
             },
             new FloatSetting
             {
-                Name = waterproofMod,
-                Description = modDesc,
+                Name = WaterproofMod,
+                Description = ModDesc,
                 DefaultValue = 0f,
                 MinValue = -500f,
                 MaxValue = 500f,
@@ -379,15 +379,15 @@ namespace CustomGameStats
             },
             new BoolSetting
             {
-                Name = envColdProtectionMod + modMult,
-                SectionTitle = envColdProtectionSection,
-                Description = multDesc,
+                Name = EnvColdProtectionMod + ModMult,
+                SectionTitle = EnvColdProtectionSection,
+                Description = MultDesc,
                 DefaultValue = false
             },
             new FloatSetting
             {
-                Name = envColdProtectionMod,
-                Description = modDesc,
+                Name = EnvColdProtectionMod,
+                Description = ModDesc,
                 DefaultValue = 0f,
                 MinValue = -500f,
                 MaxValue = 500f,
@@ -395,15 +395,15 @@ namespace CustomGameStats
             },
             new BoolSetting
             {
-                Name = coldRegenMod + modMult,
-                SectionTitle = coldRegenSection,
-                Description = multDesc,
+                Name = ColdRegenMod + ModMult,
+                SectionTitle = ColdRegenSection,
+                Description = MultDesc,
                 DefaultValue = false
             },
             new FloatSetting
             {
-                Name = coldRegenMod,
-                Description = modDesc,
+                Name = ColdRegenMod,
+                Description = ModDesc,
                 DefaultValue = 0f,
                 MinValue = -500f,
                 MaxValue = 500f,
@@ -411,15 +411,15 @@ namespace CustomGameStats
             },
             new BoolSetting
             {
-                Name = envHeatProtectionMod + modMult,
-                SectionTitle = envHeatProtectionSection,
-                Description = multDesc,
+                Name = EnvHeatProtectionMod + ModMult,
+                SectionTitle = EnvHeatProtectionSection,
+                Description = MultDesc,
                 DefaultValue = false
             },
             new FloatSetting
             {
-                Name = envHeatProtectionMod,
-                Description = modDesc,
+                Name = EnvHeatProtectionMod,
+                Description = ModDesc,
                 DefaultValue = 0f,
                 MinValue = -500f,
                 MaxValue = 500f,
@@ -427,15 +427,15 @@ namespace CustomGameStats
             },
             new BoolSetting
             {
-                Name = heatRegenMod + modMult,
-                SectionTitle = heatRegenSection,
-                Description = multDesc,
+                Name = HeatRegenMod + ModMult,
+                SectionTitle = HeatRegenSection,
+                Description = MultDesc,
                 DefaultValue = false
             },
             new FloatSetting
             {
-                Name = heatRegenMod,
-                Description = modDesc,
+                Name = HeatRegenMod,
+                Description = ModDesc,
                 DefaultValue = 0f,
                 MinValue = -500f,
                 MaxValue = 500f,
@@ -443,15 +443,15 @@ namespace CustomGameStats
             },
             new BoolSetting
             {
-                Name = speedMod + modMult,
-                SectionTitle = speedSection,
-                Description = multDesc,
+                Name = SpeedMod + ModMult,
+                SectionTitle = SpeedSection,
+                Description = MultDesc,
                 DefaultValue = true
             },
             new FloatSetting
             {
-                Name = speedMod,
-                Description = modDesc,
+                Name = SpeedMod,
+                Description = ModDesc,
                 DefaultValue = 0f,
                 MinValue = -500f,
                 MaxValue = 500f,
@@ -459,15 +459,15 @@ namespace CustomGameStats
             },
             new BoolSetting
             {
-                Name = moveSpeedMod + modMult,
-                SectionTitle = moveSpeedSection,
-                Description = multDesc,
+                Name = MoveSpeedMod + ModMult,
+                SectionTitle = MoveSpeedSection,
+                Description = MultDesc,
                 DefaultValue = true
             },
             new FloatSetting
             {
-                Name = moveSpeedMod,
-                Description = modDesc,
+                Name = MoveSpeedMod,
+                Description = ModDesc,
                 DefaultValue = 0f,
                 MinValue = -500f,
                 MaxValue = 500f,
@@ -475,15 +475,15 @@ namespace CustomGameStats
             },
             new BoolSetting
             {
-                Name = attackSpeedMod + modMult,
-                SectionTitle = attackSpeedSection,
-                Description = multDesc,
+                Name = AttackSpeedMod + ModMult,
+                SectionTitle = AttackSpeedSection,
+                Description = MultDesc,
                 DefaultValue = true
             },
             new FloatSetting
             {
-                Name = attackSpeedMod,
-                Description = modDesc,
+                Name = AttackSpeedMod,
+                Description = ModDesc,
                 DefaultValue = 0f,
                 MinValue = -500f,
                 MaxValue = 500f,
@@ -491,15 +491,15 @@ namespace CustomGameStats
             },
             new BoolSetting
             {
-                Name = stabilityRegenMod + modMult,
-                SectionTitle = stabilityRegenSection,
-                Description = multDesc,
+                Name = StabilityRegenMod + ModMult,
+                SectionTitle = StabilityRegenSection,
+                Description = MultDesc,
                 DefaultValue = false
             },
             new FloatSetting
             {
-                Name = stabilityRegenMod,
-                Description = modDesc,
+                Name = StabilityRegenMod,
+                Description = ModDesc,
                 DefaultValue = 0f,
                 MinValue = -500f,
                 MaxValue = 500f,
@@ -507,15 +507,15 @@ namespace CustomGameStats
             },
             new BoolSetting
             {
-                Name = dodgeInvulnerabilityMod + modMult,
-                SectionTitle = dodgeInvulnerabilitySection,
-                Description = multDesc,
+                Name = DodgeInvulnerabilityMod + ModMult,
+                SectionTitle = DodgeInvulnerabilitySection,
+                Description = MultDesc,
                 DefaultValue = true
             },
             new FloatSetting
             {
-                Name = dodgeInvulnerabilityMod,
-                Description = modDesc,
+                Name = DodgeInvulnerabilityMod,
+                Description = ModDesc,
                 DefaultValue = 0f,
                 MinValue = -500f,
                 MaxValue = 500f,
@@ -523,15 +523,15 @@ namespace CustomGameStats
             },
             new BoolSetting
             {
-                Name = skillCooldownMod + modMult,
-                SectionTitle = skillCooldownSection,
-                Description = multDesc,
+                Name = SkillCooldownMod + ModMult,
+                SectionTitle = SkillCooldownSection,
+                Description = MultDesc,
                 DefaultValue = true
             },
             new FloatSetting
             {
-                Name = skillCooldownMod,
-                Description = modDesc,
+                Name = SkillCooldownMod,
+                Description = ModDesc,
                 DefaultValue = 0f,
                 MinValue = -500f,
                 MaxValue = 500f,
@@ -539,15 +539,15 @@ namespace CustomGameStats
             },
             new BoolSetting
             {
-                Name = healthMod + modMult,
-                SectionTitle = healthSection,
-                Description = multDesc,
+                Name = HealthMod + ModMult,
+                SectionTitle = HealthSection,
+                Description = MultDesc,
                 DefaultValue = false
             },
             new FloatSetting
             {
-                Name = healthMod,
-                Description = modDesc,
+                Name = HealthMod,
+                Description = ModDesc,
                 DefaultValue = 0f,
                 MinValue = -500f,
                 MaxValue = 500f,
@@ -555,15 +555,15 @@ namespace CustomGameStats
             },
             new BoolSetting
             {
-                Name = healthRegenMod + modMult,
-                SectionTitle = healthRegenSection,
-                Description = multDesc,
+                Name = HealthRegenMod + ModMult,
+                SectionTitle = HealthRegenSection,
+                Description = MultDesc,
                 DefaultValue = false
             },
             new FloatSetting
             {
-                Name = healthRegenMod,
-                Description = modDesc,
+                Name = HealthRegenMod,
+                Description = ModDesc,
                 DefaultValue = 0f,
                 MinValue = -500f,
                 MaxValue = 500f,
@@ -571,15 +571,15 @@ namespace CustomGameStats
             },
             new BoolSetting
             {
-                Name = healthBurnMod + modMult,
-                SectionTitle = healthBurnSection,
-                Description =  multDesc,
+                Name = HealthBurnMod + ModMult,
+                SectionTitle = HealthBurnSection,
+                Description =  MultDesc,
                 DefaultValue = true
             },
             new FloatSetting
             {
-                Name = healthBurnMod,
-                Description = modDesc,
+                Name = HealthBurnMod,
+                Description = ModDesc,
                 DefaultValue = 0f,
                 MinValue = -500f,
                 MaxValue = 500f,
@@ -587,15 +587,15 @@ namespace CustomGameStats
             },
             new BoolSetting
             {
-                Name = staminaMod + modMult,
-                SectionTitle = staminaSection,
-                Description = multDesc,
+                Name = StaminaMod + ModMult,
+                SectionTitle = StaminaSection,
+                Description = MultDesc,
                 DefaultValue = false
             },
             new FloatSetting
             {
-                Name = staminaMod,
-                Description = modDesc,
+                Name = StaminaMod,
+                Description = ModDesc,
                 DefaultValue = 0f,
                 MinValue = -500f,
                 MaxValue = 500f,
@@ -603,15 +603,15 @@ namespace CustomGameStats
             },
             new BoolSetting
             {
-                Name = staminaRegenMod + modMult,
-                SectionTitle = staminaRegenSection,
-                Description = multDesc,
+                Name = StaminaRegenMod + ModMult,
+                SectionTitle = StaminaRegenSection,
+                Description = MultDesc,
                 DefaultValue = false
             },
             new FloatSetting
             {
-                Name = staminaRegenMod,
-                Description = modDesc,
+                Name = StaminaRegenMod,
+                Description = ModDesc,
                 DefaultValue = 0f,
                 MinValue = -500f,
                 MaxValue = 500f,
@@ -619,15 +619,15 @@ namespace CustomGameStats
             },
             new BoolSetting
             {
-                Name = staminaUseMod + modMult,
-                SectionTitle = staminaUseSection,
-                Description = multDesc,
+                Name = StaminaUseMod + ModMult,
+                SectionTitle = StaminaUseSection,
+                Description = MultDesc,
                 DefaultValue = true
             },
             new FloatSetting
             {
-                Name = staminaUseMod,
-                Description = modDesc,
+                Name = StaminaUseMod,
+                Description = ModDesc,
                 DefaultValue = 0f,
                 MinValue = -500f,
                 MaxValue = 500f,
@@ -635,15 +635,15 @@ namespace CustomGameStats
             },
             new BoolSetting
             {
-                Name = staminaCostReducMod + modMult,
-                SectionTitle = staminaCostSection,
-                Description = multDesc,
+                Name = StaminaCostReducMod + ModMult,
+                SectionTitle = StaminaCostSection,
+                Description = MultDesc,
                 DefaultValue = true
             },
             new FloatSetting
             {
-                Name = staminaCostReducMod,
-                Description = modDesc,
+                Name = StaminaCostReducMod,
+                Description = ModDesc,
                 DefaultValue = 0f,
                 MinValue = -500f,
                 MaxValue = 500f,
@@ -651,15 +651,15 @@ namespace CustomGameStats
             },
             new BoolSetting
             {
-                Name = staminaBurnMod + modMult,
-                SectionTitle = staminaBurnSection,
-                Description = multDesc,
+                Name = StaminaBurnMod + ModMult,
+                SectionTitle = StaminaBurnSection,
+                Description = MultDesc,
                 DefaultValue = true
             },
             new FloatSetting
             {
-                Name = staminaBurnMod,
-                Description = modDesc,
+                Name = StaminaBurnMod,
+                Description = ModDesc,
                 DefaultValue = 0f,
                 MinValue = -500f,
                 MaxValue = 500f,
@@ -667,15 +667,15 @@ namespace CustomGameStats
             },
             new BoolSetting
             {
-                Name = manaMod + modMult,
-                Description = multDesc,
-                SectionTitle = manaSection,
+                Name = ManaMod + ModMult,
+                Description = MultDesc,
+                SectionTitle = ManaSection,
                 DefaultValue = false
             },
             new FloatSetting
             {
-                Name = manaMod,
-                Description = modDesc,
+                Name = ManaMod,
+                Description = ModDesc,
                 DefaultValue = 0f,
                 MinValue = -500f,
                 MaxValue = 500f,
@@ -683,15 +683,15 @@ namespace CustomGameStats
             },
             new BoolSetting
             {
-                Name = manaRegenMod + modMult,
-                SectionTitle = manaRegenSection,
-                Description = multDesc,
+                Name = ManaRegenMod + ModMult,
+                SectionTitle = ManaRegenSection,
+                Description = MultDesc,
                 DefaultValue = false
             },
             new FloatSetting
             {
-                Name = manaRegenMod,
-                Description = modDesc,
+                Name = ManaRegenMod,
+                Description = ModDesc,
                 DefaultValue = 0f,
                 MinValue = -500f,
                 MaxValue = 500f,
@@ -699,15 +699,15 @@ namespace CustomGameStats
             },
             new BoolSetting
             {
-                Name = manaUseMod + modMult,
-                SectionTitle = manaUseSection,
-                Description = multDesc,
+                Name = ManaUseMod + ModMult,
+                SectionTitle = ManaUseSection,
+                Description = MultDesc,
                 DefaultValue = true
             },
             new FloatSetting
             {
-                Name = manaUseMod,
-                Description = modDesc,
+                Name = ManaUseMod,
+                Description = ModDesc,
                 DefaultValue = 0f,
                 MinValue = -500f,
                 MaxValue = 500f,
@@ -715,15 +715,15 @@ namespace CustomGameStats
             },
             new BoolSetting
             {
-                Name = manaBurnMod + modMult,
-                SectionTitle = manaBurnSection,
-                Description = multDesc,
+                Name = ManaBurnMod + ModMult,
+                SectionTitle = ManaBurnSection,
+                Description = MultDesc,
                 DefaultValue = true
             },
             new FloatSetting
             {
-                Name = manaBurnMod,
-                Description = modDesc,
+                Name = ManaBurnMod,
+                Description = ModDesc,
                 DefaultValue = 0f,
                 MinValue = -500f,
                 MaxValue = 500f,
@@ -731,15 +731,15 @@ namespace CustomGameStats
             },
             new BoolSetting
             {
-                Name = allDamagesMod + modMult,
-                SectionTitle = allDamagesSection,
-                Description = multDesc,
+                Name = AllDamagesMod + ModMult,
+                SectionTitle = AllDamagesSection,
+                Description = MultDesc,
                 DefaultValue = true
             },
             new FloatSetting
             {
-                Name = allDamagesMod,
-                Description = modDesc,
+                Name = AllDamagesMod,
+                Description = ModDesc,
                 DefaultValue = 0f,
                 MinValue = -500f,
                 MaxValue = 500f,
@@ -747,15 +747,15 @@ namespace CustomGameStats
             },
             new BoolSetting
             {
-                Name = physicalDamageMod + modMult,
-                SectionTitle = physicalDamageSection,
-                Description = multDesc,
+                Name = PhysicalDamageMod + ModMult,
+                SectionTitle = PhysicalDamageSection,
+                Description = MultDesc,
                 DefaultValue = true
             },
             new FloatSetting
             {
-                Name = physicalDamageMod,
-                Description = modDesc,
+                Name = PhysicalDamageMod,
+                Description = ModDesc,
                 DefaultValue = 0f,
                 MinValue = -500f,
                 MaxValue = 500f,
@@ -763,15 +763,15 @@ namespace CustomGameStats
             },
             new BoolSetting
             {
-                Name = impactMod + modMult,
-                SectionTitle = impactSection,
-                Description = multDesc,
+                Name = ImpactMod + ModMult,
+                SectionTitle = ImpactSection,
+                Description = MultDesc,
                 DefaultValue = true,
             },
             new FloatSetting
             {
-                Name = impactMod,
-                Description = modDesc,
+                Name = ImpactMod,
+                Description = ModDesc,
                 DefaultValue = 0f,
                 MinValue = -500f,
                 MaxValue = 500f,
@@ -779,15 +779,15 @@ namespace CustomGameStats
             },
             new BoolSetting
             {
-                Name = etherealDamageMod + modMult,
-                SectionTitle = etherealDamageSection,
-                Description = multDesc,
+                Name = EtherealDamageMod + ModMult,
+                SectionTitle = EtherealDamageSection,
+                Description = MultDesc,
                 DefaultValue = true
             },
             new FloatSetting
             {
-                Name = etherealDamageMod,
-                Description = modDesc,
+                Name = EtherealDamageMod,
+                Description = ModDesc,
                 DefaultValue = 0f,
                 MinValue = -500f,
                 MaxValue = 500f,
@@ -795,15 +795,15 @@ namespace CustomGameStats
             },
             new BoolSetting
             {
-                Name = decayDamageMod + modMult,
-                SectionTitle = decayDamageSection,
-                Description = multDesc,
+                Name = DecayDamageMod + ModMult,
+                SectionTitle = DecayDamageSection,
+                Description = MultDesc,
                 DefaultValue = true
             },
             new FloatSetting
             {
-                Name = decayDamageMod,
-                Description = modDesc,
+                Name = DecayDamageMod,
+                Description = ModDesc,
                 DefaultValue = 0f,
                 MinValue = -500f,
                 MaxValue = 500f,
@@ -811,15 +811,15 @@ namespace CustomGameStats
             },
             new BoolSetting
             {
-                Name = electricDamageMod + modMult,
-                SectionTitle = electricDamageSection,
-                Description = multDesc,
+                Name = ElectricDamageMod + ModMult,
+                SectionTitle = ElectricDamageSection,
+                Description = MultDesc,
                 DefaultValue = true
             },
             new FloatSetting
             {
-                Name = electricDamageMod,
-                Description = modDesc,
+                Name = ElectricDamageMod,
+                Description = ModDesc,
                 DefaultValue = 0f,
                 MinValue = -500f,
                 MaxValue = 500f,
@@ -827,15 +827,15 @@ namespace CustomGameStats
             },
             new BoolSetting
             {
-                Name = frostDamageMod + modMult,
-                SectionTitle = frostDamageSection,
-                Description = multDesc,
+                Name = FrostDamageMod + ModMult,
+                SectionTitle = FrostDamageSection,
+                Description = MultDesc,
                 DefaultValue = true
             },
             new FloatSetting
             {
-                Name = frostDamageMod,
-                Description = modDesc,
+                Name = FrostDamageMod,
+                Description = ModDesc,
                 DefaultValue = 0f,
                 MinValue = -500f,
                 MaxValue = 500f,
@@ -843,15 +843,15 @@ namespace CustomGameStats
             },
             new BoolSetting
             {
-                Name = fireDamageMod + modMult,
-                SectionTitle = fireDamageSection,
-                Description = multDesc,
+                Name = FireDamageMod + ModMult,
+                SectionTitle = FireDamageSection,
+                Description = MultDesc,
                 DefaultValue = true
             },
             new FloatSetting
             {
-                Name = fireDamageMod,
-                Description = modDesc,
+                Name = FireDamageMod,
+                Description = ModDesc,
                 DefaultValue = 0f,
                 MinValue = -500f,
                 MaxValue = 500f,
@@ -859,15 +859,15 @@ namespace CustomGameStats
             },
             new BoolSetting
             {
-                Name = darkDamageMod + modMult,
-                SectionTitle = darkDamageSection,
-                Description = multDesc,
+                Name = DarkDamageMod + ModMult,
+                SectionTitle = DarkDamageSection,
+                Description = MultDesc,
                 DefaultValue = true
             },
             new FloatSetting
             {
-                Name = darkDamageMod,
-                Description = modDesc,
+                Name = DarkDamageMod,
+                Description = ModDesc,
                 DefaultValue = 0f,
                 MinValue = -500f,
                 MaxValue = 500f,
@@ -875,15 +875,15 @@ namespace CustomGameStats
             },
             new BoolSetting
             {
-                Name = lightDamageMod + modMult,
-                SectionTitle = lightDamageSection,
-                Description = multDesc,
+                Name = LightDamageMod + ModMult,
+                SectionTitle = LightDamageSection,
+                Description = MultDesc,
                 DefaultValue = true
             },
             new FloatSetting
             {
-                Name = lightDamageMod,
-                Description = modDesc,
+                Name = LightDamageMod,
+                Description = ModDesc,
                 DefaultValue = 0f,
                 MinValue = -500f,
                 MaxValue = 500f,
@@ -891,15 +891,15 @@ namespace CustomGameStats
             },
             new BoolSetting
             {
-                Name = damageProtectionMod + modMult,
-                SectionTitle = damageProtectionSection,
-                Description = multDesc,
+                Name = DamageProtectionMod + ModMult,
+                SectionTitle = DamageProtectionSection,
+                Description = MultDesc,
                 DefaultValue = false
             },
             new FloatSetting
             {
-                Name = damageProtectionMod,
-                Description = modDesc,
+                Name = DamageProtectionMod,
+                Description = ModDesc,
                 DefaultValue = 0f,
                 MinValue = -500f,
                 MaxValue = 500f,
@@ -907,15 +907,15 @@ namespace CustomGameStats
             },
             new BoolSetting
             {
-                Name = physicalProtectionMod + modMult,
-                SectionTitle = physicalProtectionSection,
-                Description = multDesc,
+                Name = PhysicalProtectionMod + ModMult,
+                SectionTitle = PhysicalProtectionSection,
+                Description = MultDesc,
                 DefaultValue = false
             },
             new FloatSetting
             {
-                Name = physicalProtectionMod,
-                Description = modDesc,
+                Name = PhysicalProtectionMod,
+                Description = ModDesc,
                 DefaultValue = 0f,
                 MinValue = -500f,
                 MaxValue = 500f,
@@ -923,15 +923,15 @@ namespace CustomGameStats
             },
             new BoolSetting
             {
-                Name = etherealProtectionMod + modMult,
-                SectionTitle = etherealProtectionSection,
-                Description = multDesc,
+                Name = EtherealProtectionMod + ModMult,
+                SectionTitle = EtherealProtectionSection,
+                Description = MultDesc,
                 DefaultValue = false
             },
             new FloatSetting
             {
-                Name = etherealProtectionMod,
-                Description = modDesc,
+                Name = EtherealProtectionMod,
+                Description = ModDesc,
                 DefaultValue = 0f,
                 MinValue = -500f,
                 MaxValue = 500f,
@@ -939,15 +939,15 @@ namespace CustomGameStats
             },
             new BoolSetting
             {
-                Name = decayProtectionMod + modMult,
-                SectionTitle = decayProtectionSection,
-                Description = multDesc,
+                Name = DecayProtectionMod + ModMult,
+                SectionTitle = DecayProtectionSection,
+                Description = MultDesc,
                 DefaultValue = false
             },
             new FloatSetting
             {
-                Name = decayProtectionMod,
-                Description = modDesc,
+                Name = DecayProtectionMod,
+                Description = ModDesc,
                 DefaultValue = 0f,
                 MinValue = -500f,
                 MaxValue = 500f,
@@ -955,15 +955,15 @@ namespace CustomGameStats
             },
             new BoolSetting
             {
-                Name = electricProtectionMod + modMult,
-                SectionTitle = electricProtectionSection,
-                Description = multDesc,
+                Name = ElectricProtectionMod + ModMult,
+                SectionTitle = ElectricProtectionSection,
+                Description = MultDesc,
                 DefaultValue = false
             },
             new FloatSetting
             {
-                Name = electricProtectionMod,
-                Description = modDesc,
+                Name = ElectricProtectionMod,
+                Description = ModDesc,
                 DefaultValue = 0f,
                 MinValue = -500f,
                 MaxValue = 500f,
@@ -971,15 +971,15 @@ namespace CustomGameStats
             },
             new BoolSetting
             {
-                Name = frostProtectionMod + modMult,
-                SectionTitle = frostProtectionSection,
-                Description = multDesc,
+                Name = FrostProtectionMod + ModMult,
+                SectionTitle = FrostProtectionSection,
+                Description = MultDesc,
                 DefaultValue = false
             },
             new FloatSetting
             {
-                Name = frostProtectionMod,
-                Description = modDesc,
+                Name = FrostProtectionMod,
+                Description = ModDesc,
                 DefaultValue = 0f,
                 MinValue = -500f,
                 MaxValue = 500f,
@@ -987,15 +987,15 @@ namespace CustomGameStats
             },
             new BoolSetting
             {
-                Name = fireProtectionMod + modMult,
-                SectionTitle = fireProtectionSection,
-                Description = multDesc,
+                Name = FireProtectionMod + ModMult,
+                SectionTitle = FireProtectionSection,
+                Description = MultDesc,
                 DefaultValue = false
             },
             new FloatSetting
             {
-                Name = fireProtectionMod,
-                Description = modDesc,
+                Name = FireProtectionMod,
+                Description = ModDesc,
                 DefaultValue = 0f,
                 MinValue = -500f,
                 MaxValue = 500f,
@@ -1003,15 +1003,15 @@ namespace CustomGameStats
             },
             new BoolSetting
             {
-                Name = darkProtectionMod + modMult,
-                SectionTitle = darkProtectionSection,
-                Description = multDesc,
+                Name = DarkProtectionMod + ModMult,
+                SectionTitle = DarkProtectionSection,
+                Description = MultDesc,
                 DefaultValue = false
             },
             new FloatSetting
             {
-                Name = darkProtectionMod,
-                Description = modDesc,
+                Name = DarkProtectionMod,
+                Description = ModDesc,
                 DefaultValue = 0f,
                 MinValue = -500f,
                 MaxValue = 500f,
@@ -1019,15 +1019,15 @@ namespace CustomGameStats
             },
             new BoolSetting
             {
-                Name = lightProtectionMod + modMult,
-                SectionTitle = lightProtectionSection,
-                Description = multDesc,
+                Name = LightProtectionMod + ModMult,
+                SectionTitle = LightProtectionSection,
+                Description = MultDesc,
                 DefaultValue = false
             },
             new FloatSetting
             {
-                Name = lightProtectionMod,
-                Description = modDesc,
+                Name = LightProtectionMod,
+                Description = ModDesc,
                 DefaultValue = 0f,
                 MinValue = -500f,
                 MaxValue = 500f,
@@ -1035,15 +1035,15 @@ namespace CustomGameStats
             },
             new BoolSetting
             {
-                Name = allResistancesMod + modMult,
-                SectionTitle = allResistancesSection,
-                Description = multDesc,
+                Name = AllResistancesMod + ModMult,
+                SectionTitle = AllResistancesSection,
+                Description = MultDesc,
                 DefaultValue = false
             },
             new FloatSetting
             {
-                Name = allResistancesMod,
-                Description = modDesc,
+                Name = AllResistancesMod,
+                Description = ModDesc,
                 DefaultValue = 0f,
                 MinValue = -500f,
                 MaxValue = 500f,
@@ -1051,15 +1051,15 @@ namespace CustomGameStats
             },
             new BoolSetting
             {
-                Name = damageResistanceMod + modMult,
-                SectionTitle = damageResistanceSection,
-                Description = multDesc,
+                Name = DamageResistanceMod + ModMult,
+                SectionTitle = DamageResistanceSection,
+                Description = MultDesc,
                 DefaultValue = false
             },
             new FloatSetting
             {
-                Name = damageResistanceMod,
-                Description = modDesc,
+                Name = DamageResistanceMod,
+                Description = ModDesc,
                 DefaultValue = 0f,
                 MinValue = -500f,
                 MaxValue = 500f,
@@ -1067,15 +1067,15 @@ namespace CustomGameStats
             },
             new BoolSetting
             {
-                Name = corruptionResistanceMod + modMult,
-                SectionTitle = corruptionResistanceSection,
-                Description = multDesc,
+                Name = CorruptionResistanceMod + ModMult,
+                SectionTitle = CorruptionResistanceSection,
+                Description = MultDesc,
                 DefaultValue = false
             },
             new FloatSetting
             {
-                Name = corruptionResistanceMod,
-                Description = modDesc,
+                Name = CorruptionResistanceMod,
+                Description = ModDesc,
                 DefaultValue = 0f,
                 MinValue = -500f,
                 MaxValue = 500f,
@@ -1083,15 +1083,15 @@ namespace CustomGameStats
             },
             new BoolSetting
             {
-                Name = physicalResistanceMod + modMult,
-                SectionTitle = physicalResistanceSection,
-                Description = multDesc,
+                Name = PhysicalResistanceMod + ModMult,
+                SectionTitle = PhysicalResistanceSection,
+                Description = MultDesc,
                 DefaultValue = false
             },
             new FloatSetting
             {
-                Name = physicalResistanceMod,
-                Description = modDesc,
+                Name = PhysicalResistanceMod,
+                Description = ModDesc,
                 DefaultValue = 0f,
                 MinValue = -500f,
                 MaxValue = 500f,
@@ -1099,15 +1099,15 @@ namespace CustomGameStats
             },
             new BoolSetting
             {
-                Name = impactResistanceMod + modMult,
-                SectionTitle = impactResistanceSection,
-                Description = multDesc,
+                Name = ImpactResistanceMod + ModMult,
+                SectionTitle = ImpactResistanceSection,
+                Description = MultDesc,
                 DefaultValue = false
             },
             new FloatSetting
             {
-                Name = impactResistanceMod,
-                Description = modDesc,
+                Name = ImpactResistanceMod,
+                Description = ModDesc,
                 DefaultValue = 0f,
                 MinValue = -500f,
                 MaxValue = 500f,
@@ -1115,15 +1115,15 @@ namespace CustomGameStats
             },
             new BoolSetting
             {
-                Name = etherealResistanceMod + modMult,
-                SectionTitle = etherealResistanceSection,
-                Description = multDesc,
+                Name = EtherealResistanceMod + ModMult,
+                SectionTitle = EtherealResistanceSection,
+                Description = MultDesc,
                 DefaultValue = false
             },
             new FloatSetting
             {
-                Name = etherealResistanceMod,
-                Description = modDesc,
+                Name = EtherealResistanceMod,
+                Description = ModDesc,
                 DefaultValue = 0f,
                 MinValue = -500f,
                 MaxValue = 500f,
@@ -1131,15 +1131,15 @@ namespace CustomGameStats
             },
             new BoolSetting
             {
-                Name = decayResistanceMod + modMult,
-                SectionTitle = decayResistanceSection,
-                Description = multDesc,
+                Name = DecayResistanceMod + ModMult,
+                SectionTitle = DecayResistanceSection,
+                Description = MultDesc,
                 DefaultValue = false
             },
             new FloatSetting
             {
-                Name = decayResistanceMod,
-                Description = modDesc,
+                Name = DecayResistanceMod,
+                Description = ModDesc,
                 DefaultValue = 0f,
                 MinValue = -500f,
                 MaxValue = 500f,
@@ -1147,15 +1147,15 @@ namespace CustomGameStats
             },
             new BoolSetting
             {
-                Name = electricResistanceMod + modMult,
-                SectionTitle = electricResistanceSection,
-                Description = multDesc,
+                Name = ElectricResistanceMod + ModMult,
+                SectionTitle = ElectricResistanceSection,
+                Description = MultDesc,
                 DefaultValue = false
             },
             new FloatSetting
             {
-                Name = electricResistanceMod,
-                Description = modDesc,
+                Name = ElectricResistanceMod,
+                Description = ModDesc,
                 DefaultValue = 0f,
                 MinValue = -500f,
                 MaxValue = 500f,
@@ -1163,15 +1163,15 @@ namespace CustomGameStats
             },
             new BoolSetting
             {
-                Name = frostResistanceMod + modMult,
-                SectionTitle = frostResistanceSection,
-                Description = multDesc,
+                Name = FrostResistanceMod + ModMult,
+                SectionTitle = FrostResistanceSection,
+                Description = MultDesc,
                 DefaultValue = false
             },
             new FloatSetting
             {
-                Name = frostResistanceMod,
-                Description = modDesc,
+                Name = FrostResistanceMod,
+                Description = ModDesc,
                 DefaultValue = 0f,
                 MinValue = -500f,
                 MaxValue = 500f,
@@ -1179,15 +1179,15 @@ namespace CustomGameStats
             },
             new BoolSetting
             {
-                Name = fireResistanceMod + modMult,
-                SectionTitle = fireResistanceSection,
-                Description = multDesc,
+                Name = FireResistanceMod + ModMult,
+                SectionTitle = FireResistanceSection,
+                Description = MultDesc,
                 DefaultValue = false
             },
             new FloatSetting
             {
-                Name = fireResistanceMod,
-                Description = modDesc,
+                Name = FireResistanceMod,
+                Description = ModDesc,
                 DefaultValue = 0f,
                 MinValue = -500f,
                 MaxValue = 500f,
@@ -1195,15 +1195,15 @@ namespace CustomGameStats
             },
             new BoolSetting
             {
-                Name = darkResistanceMod + modMult,
-                SectionTitle = darkResistanceSection,
-                Description = multDesc,
+                Name = DarkResistanceMod + ModMult,
+                SectionTitle = DarkResistanceSection,
+                Description = MultDesc,
                 DefaultValue = false
             },
             new FloatSetting
             {
-                Name = darkResistanceMod,
-                Description = modDesc,
+                Name = DarkResistanceMod,
+                Description = ModDesc,
                 DefaultValue = 0f,
                 MinValue = -500f,
                 MaxValue = 500f,
@@ -1211,15 +1211,15 @@ namespace CustomGameStats
             },
             new BoolSetting
             {
-                Name = lightResistanceMod + modMult,
-                SectionTitle = lightResistanceSection,
-                Description = multDesc,
+                Name = LightResistanceMod + ModMult,
+                SectionTitle = LightResistanceSection,
+                Description = MultDesc,
                 DefaultValue = false
             },
             new FloatSetting
             {
-                Name = lightResistanceMod,
-                Description = modDesc,
+                Name = LightResistanceMod,
+                Description = ModDesc,
                 DefaultValue = 0f,
                 MinValue = -500f,
                 MaxValue = 500f,
@@ -1228,16 +1228,16 @@ namespace CustomGameStats
         };
 
         //util
-        public static void SoftRegister(ModConfig _config)
+        public static void PseudoRegister(ModConfig config)
         {
             Dictionary<string, BBSetting> _dict = new Dictionary<string, BBSetting>();
 
-            foreach (BBSetting _bbs in _config.Settings)
+            foreach (BBSetting _bbs in config.Settings)
             {
                 _dict.Add(_bbs.Name, _bbs);
             }
 
-            AT.SetValue(_dict, typeof(ModConfig), _config, "m_Settings");
+            AT.SetValue(_dict, typeof(ModConfig), config, "m_Settings");
         }
     }
 }
