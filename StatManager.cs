@@ -37,7 +37,7 @@ namespace CustomGameStats
         internal void Start()
         {
             CustomGameStats.PlayerConfig.OnSettingsSaved += PlayerSyncHandler;
-            CustomGameStats.AIConfig.OnSettingsSaved += AiSyncHandler;
+            CustomGameStats.AIConfig.OnSettingsSaved += AISyncHandler;
         }
 
         internal void Update()
@@ -93,22 +93,20 @@ namespace CustomGameStats
 
         public void SetPlayerSyncInfo()  //client
         {
-            if (_playerSyncInit)
+            if (!_playerSyncInit)
             {
-                UpdateCustomStats(Instance.CurrentPlayerSyncInfo);
+                UpdatePlayerSyncInfo();
             }
-
-            UpdatePlayerSyncInfo();
+            UpdateCustomStats(Instance.CurrentPlayerSyncInfo);
         }
 
-        public void SetAiSyncInfo()  //client
+        public void SetAISyncInfo()  //client
         {
-            if (_aiSyncInit)
+            if (!_aiSyncInit)
             {
-                UpdateCustomStats(Instance.CurrentAISyncInfo);
+                UpdateAISyncInfo();
             }
-
-            UpdateAISyncInfo();
+            UpdateCustomStats(Instance.CurrentAISyncInfo);
         }
 
         public void SetSyncBoolInfo(string name, bool value, bool flag)  //client
@@ -137,7 +135,7 @@ namespace CustomGameStats
 
         private static void PlayerSyncHandler()  //host
         {
-            if (Global.Lobby.PlayersInLobbyCount < 1 || Global.GamePaused) { return; }
+            if (Global.Lobby.PlayersInLobbyCount < 1) { return; }
 
             if (!PhotonNetwork.offlineMode && !PhotonNetwork.isNonMasterClientInRoom)
             {
@@ -150,9 +148,9 @@ namespace CustomGameStats
             }
         }
 
-        private static void AiSyncHandler()  //host
+        private static void AISyncHandler()  //host
         {
-            if (Global.Lobby.PlayersInLobbyCount < 1 || Global.GamePaused) { return; }
+            if (Global.Lobby.PlayersInLobbyCount < 1) { return; }
 
             if (!PhotonNetwork.offlineMode && !PhotonNetwork.isNonMasterClientInRoom)
             {
@@ -640,7 +638,6 @@ namespace CustomGameStats
             {
                 if (JsonUtility.FromJson<VitalsInfo>(File.ReadAllText(_path)) is VitalsInfo _json)
                 {
-                    Debug.Log($"HPR: { _json.HealthRatio } BHP: { _json.BurntHealthRatio }");
                     return _json;
                 }
             }

@@ -213,7 +213,7 @@ namespace CustomGameStats
         {
             if (PhotonNetwork.isNonMasterClientInRoom)
             {
-                StatManager.Instance.SetAiSyncInfo();
+                StatManager.Instance.SetAISyncInfo();
             }
         }
     }
