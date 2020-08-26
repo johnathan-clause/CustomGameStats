@@ -10,38 +10,41 @@ namespace CustomGameStats
 {
     public class StatManager : PunBehaviour
     {
-        public static StatManager instance;
+        public static StatManager Instance { get; private set; }
 
-        public ModConfig currentPlayerSyncInfo;
-        public ModConfig currentAiSyncInfo;
-        public bool playerSyncInit = false;
-        public bool aiSyncInit = false;
+        public ModConfig CurrentPlayerSyncInfo { get; set; }
+        public ModConfig CurrentAISyncInfo { get; set; }
+
 
         private static readonly string _dir = @"Mods\ModConfigs\";
-        private static readonly string _file = _dir + Settings.modName;
+        private static readonly string _file = $"{_dir }{ Settings.ModName }";
         private static readonly string _ext = ".json";
 
         private readonly Dictionary<string, VitalsInfo> _lastVitals = new Dictionary<string, VitalsInfo>();
 
-        private string _currentHostUID = "";
+        private string _currentHostUid = "";
+        private bool _playerSyncInit = false;
+        private bool _aiSyncInit = false;
         private bool _checkSplit = false;
         private bool _isOnline = false;
         private float _lastVitalsUpdate = -12f;
 
         internal void Awake()
         {
-            instance = this;
+            Instance = this;
         }
 
         internal void Start()
         {
-            Main.playerConfig.OnSettingsSaved += PlayerSyncHandler;
-            Main.aiConfig.OnSettingsSaved += AiSyncHandler;
+            CustomGameStats.PlayerConfig.OnSettingsSaved += PlayerSyncHandler;
+            CustomGameStats.AIConfig.OnSettingsSaved += AISyncHandler;
         }
 
-        internal void LateUpdate()
+        internal void Update()
         {
-            if (Global.Lobby.PlayersInLobbyCount < 1 || NetworkLevelLoader.Instance.IsGameplayPaused || NetworkLevelLoader.Instance.IsGameplayLoading)
+            if (Global.Lobby.PlayersInLobbyCount < 1 
+                || NetworkLevelLoader.Instance.IsGameplayPaused 
+                || NetworkLevelLoader.Instance.IsGameplayLoading)
             {
                 return;
             }
@@ -51,7 +54,7 @@ namespace CustomGameStats
                 if (_checkSplit)
                 {
                     _checkSplit = false;
-                    UpdateCustomStats(Main.playerConfig);
+                    UpdateCustomStats(CustomGameStats.PlayerConfig);
                 }
 
                 if (!PhotonNetwork.offlineMode && PhotonNetwork.isNonMasterClientInRoom)
@@ -61,7 +64,7 @@ namespace CustomGameStats
                         _isOnline = true;
                     }
 
-                    if (playerSyncInit && aiSyncInit && UpdateSyncInfo())
+                    if (UpdateSyncInfo())
                     {
                         RequestSync();
                     }
@@ -72,13 +75,11 @@ namespace CustomGameStats
                 if (_isOnline && PhotonNetwork.connected)
                 {
                     _isOnline = false;
-                    _currentHostUID = "";
-                    playerSyncInit = false;
-                    currentPlayerSyncInfo = null;
-                    aiSyncInit = false;
-                    currentAiSyncInfo = null;
-                    UpdateCustomStats(Main.playerConfig);
-                    UpdateCustomStats(Main.aiConfig);
+                    _currentHostUid = "";
+                    UpdatePlayerSyncInfo(false);
+                    UpdateAISyncInfo(false);
+                    UpdateCustomStats(CustomGameStats.PlayerConfig);
+                    UpdateCustomStats(CustomGameStats.AIConfig);
                 }
 
                 _checkSplit = true;
@@ -92,47 +93,43 @@ namespace CustomGameStats
 
         public void SetPlayerSyncInfo()  //client
         {
-            instance._currentHostUID = CharacterManager.Instance.GetWorldHostCharacter()?.UID;
-
-            if (playerSyncInit)
+            if (!_playerSyncInit)
             {
-                UpdateCustomStats(instance.currentPlayerSyncInfo);
+                UpdatePlayerSyncInfo();
+            }
+            UpdateCustomStats(Instance.CurrentPlayerSyncInfo);
+        }
+
+        public void SetAISyncInfo()  //client
+        {
+            if (!_aiSyncInit)
+            {
+                UpdateAISyncInfo();
+            }
+            UpdateCustomStats(Instance.CurrentAISyncInfo);
+        }
+
+        public void SetSyncBoolInfo(string name, bool value, bool flag)  //client
+        {
+            if (flag)
+            {
+                Instance.CurrentPlayerSyncInfo.SetValue(name, value);
+            }
+            else
+            {
+                Instance.CurrentAISyncInfo.SetValue(name, value);
             }
         }
 
-        public void SetAiSyncInfo()  //client
+        public void SetSyncFloatInfo(string name, float value, bool flag)  //client
         {
-            instance._currentHostUID = CharacterManager.Instance.GetWorldHostCharacter()?.UID;
-
-            if (aiSyncInit)
+            if (flag)
             {
-                UpdateCustomStats(instance.currentAiSyncInfo);
+                Instance.CurrentPlayerSyncInfo.SetValue(name, value);
             }
-        }
-
-        public void SetSyncBoolInfo(string _name, bool _bool, string _flag)  //client
-        {
-            switch (_flag)
+            else
             {
-                case "player":
-                    instance.currentPlayerSyncInfo.SetValue(_name, _bool);
-                    break;
-                case "ai":
-                    instance.currentAiSyncInfo.SetValue(_name, _bool);
-                    break;
-            }
-        }
-
-        public void SetSyncFloatInfo(string _name, float _float, string _flag)  //client
-        {
-            switch (_flag)
-            {
-                case "player":
-                    instance.currentPlayerSyncInfo.SetValue(_name, _float);
-                    break;
-                case "ai":
-                    instance.currentAiSyncInfo.SetValue(_name, _float);
-                    break;
+                Instance.CurrentAISyncInfo.SetValue(name, value);
             }
         }
 
@@ -142,119 +139,148 @@ namespace CustomGameStats
 
             if (!PhotonNetwork.offlineMode && !PhotonNetwork.isNonMasterClientInRoom)
             {
-                RPCManager.instance.PlayerSync();
+                RPCManager.Instance.PlayerSync();
             }
 
             if (PhotonNetwork.isMasterClient)
             {
-                instance.UpdateCustomStats(Main.playerConfig);
+                Instance.UpdateCustomStats(CustomGameStats.PlayerConfig);
             }
         }
 
-        private static void AiSyncHandler()  //host
+        private static void AISyncHandler()  //host
         {
             if (Global.Lobby.PlayersInLobbyCount < 1) { return; }
 
             if (!PhotonNetwork.offlineMode && !PhotonNetwork.isNonMasterClientInRoom)
             {
-                RPCManager.instance.AiSync();
+                RPCManager.Instance.AISync();
             }
 
             if (PhotonNetwork.isMasterClient)
             {
-                instance.UpdateCustomStats(Main.aiConfig);
+                Instance.UpdateCustomStats(CustomGameStats.AIConfig);
             }
         }
 
-        private static float ModifyLogic(bool _op, float _base, float _value, float _limiter)
+        private static float ModifyLogic(bool mult, float orig, float value, float limit)
         {
-            if (_op)
+            if (mult)
             {
-                if (_value < 0)
+                if (value < 0)
                 {
-                    if ((_limiter - _base) / _base > _value)
+                    if ((limit - orig) / orig > value)
                     {
-                        return (_limiter - _base) / _base;
+                        return (limit - orig) / orig;
                     }
                     else
                     {
-                        return _value;
+                        return value;
                     }
                 }
                 else
                 {
-                    return _value;
+                    return value;
                 }
             }
             else
             {
-                return Math.Max(_limiter - _base, _value);
+                return Math.Max(limit - orig, value);
             }
         }
 
-        private static float Modify(bool _op, float _base, float _value, float _limiter, ModConfig _config)
+        private static float Modify(bool mult, float orig, float value, float limit, ModConfig config)
         {
-            if ((bool)_config.GetValue(Settings.gameBehaviour))
+            if ((bool)config.GetValue(Settings.GameBehaviour))
             {
-                return ModifyLogic(_op, _base, _value, _limiter);
+                return ModifyLogic(mult, orig, value, limit);
             }
             else
             {
-                if ((bool)_config.GetValue(Settings.strictMinimum))
+                if ((bool)config.GetValue(Settings.StrictMinimum))
                 {
-                    switch (_limiter)
+                    switch (limit)
                     {
                         case 50f:
-                            _limiter = 1f;
+                            limit = 1f;
                             break;
                         case 0.01f:
-                            _limiter = 0f;
+                            limit = 0f;
                             break;
                         default:
-                            _limiter = 0f;
+                            limit = 0f;
                             break;
                     }
 
-                    return ModifyLogic(_op, _base, _value, _limiter);
+                    return ModifyLogic(mult, orig, value, limit);
                 }
                 else
                 {
-                    return _value;
+                    return value;
                 }
             }
         }
 
         private void RequestSync()  //client
         {
-            if (currentPlayerSyncInfo == null)
+            _currentHostUid = CharacterManager.Instance.GetWorldHostCharacter()?.UID;
+
+            if (CurrentPlayerSyncInfo == null)
             {
-                RPCManager.instance.RequestPlayerSync();
+                RPCManager.Instance.RequestPlayerSync();
             }
-            
-            if (currentAiSyncInfo == null)
+
+            if (CurrentAISyncInfo == null)
             {
-                RPCManager.instance.RequestAiSync();
+                RPCManager.Instance.RequestAISync();
+            }
+        }
+
+        private void UpdatePlayerSyncInfo(bool init = true)
+        {
+            _playerSyncInit = init;
+
+            if (!init)
+            {
+                CurrentPlayerSyncInfo = null;
+            }
+        }
+
+        private void UpdateAISyncInfo(bool init = true)
+        {
+            _aiSyncInit = init;
+
+            if (!init)
+            {
+                CurrentAISyncInfo = null;
             }
         }
 
         private bool UpdateSyncInfo()
         {
-            if (CharacterManager.Instance.GetWorldHostCharacter() is Character host)
+            if (_playerSyncInit && _aiSyncInit)
             {
-                if (host.UID != _currentHostUID)
+                if (CharacterManager.Instance.GetWorldHostCharacter() is Character host)
                 {
-                    return true;
-                }
-                else
-                {
-                    if (currentPlayerSyncInfo == null || currentAiSyncInfo == null)
+                    if (host.UID != _currentHostUid)
                     {
                         return true;
                     }
                     else
                     {
-                        return false;
+                        if (CurrentPlayerSyncInfo == null || CurrentAISyncInfo == null)
+                        {
+                            return true;
+                        }
+                        else
+                        {
+                            return false;
+                        }
                     }
+                }
+                else
+                {
+                    return false;
                 }
             }
             else
@@ -263,352 +289,350 @@ namespace CustomGameStats
             }
         }
 
-        private void UpdateCustomStats(ModConfig _config)
+        private void UpdateCustomStats(ModConfig config)
         {
-            if (_config.ModName.Contains("Player"))
+            if (config.ModName.Contains("Player"))
             {
-                foreach (Character c in CharacterManager.Instance.Characters.Values)
+                foreach (Character _c in CharacterManager.Instance.Characters.Values)
                 {
-                    if (!c.IsAI)
+                    if (!_c.IsAI)
                     {
-                        if ((bool)_config.GetValue(Settings.toggleSwitch))
+                        if ((bool)config.GetValue(Settings.ToggleSwitch))
                         {
-                            ApplyCustomStats(c, _config, Settings.playerStats, true);
+                            ApplyCustomStats(_c, config, Settings.PlayerStats, true);
                         }
                         else
                         {
-                            ApplyCustomStats(c, _config, Settings.playerStats, false);
+                            ApplyCustomStats(_c, config, Settings.PlayerStats, false);
                         }   
                     }
                 }
             }
             else
             {
-                foreach (Character c in CharacterManager.Instance.Characters.Values)
+                foreach (Character _c in CharacterManager.Instance.Characters.Values)
                 {
-                    if (c.IsAI)
+                    if (_c.IsAI)
                     {
-                        if ((bool)_config.GetValue(Settings.toggleSwitch))
+                        if ((bool)config.GetValue(Settings.ToggleSwitch))
                         {
-                            ApplyCustomStats(c, _config, Settings.aiStats, true);
+                            ApplyCustomStats(_c, config, Settings.AIStats, true);
                         }
                         else
                         {
-                            ApplyCustomStats(c, _config, Settings.aiStats, false);
+                            ApplyCustomStats(_c, config, Settings.AIStats, false);
                         }
                     }
                 }
             }
         }
 
-        private void ApplyCustomStats(Character _char, ModConfig _config, string _stackSource, bool _flag)
+        private void ApplyCustomStats(Character character, ModConfig config, string stackSource, bool flag)
         {
-            VitalsInfo _ratios = LoadVitalsInfo(_char.UID) ?? new VitalsInfo
+            character.Stats.RefreshVitalMaxStat();
+            character.Stats.RestoreAllVitals();
+
+            VitalsInfo _ratios = LoadVitalsInfo(character.UID) ?? new VitalsInfo
             {
-                healthRatio = _char.HealthRatio,
-                burntHealthRatio = _char.Stats.BurntHealthRatio,
-                staminaRatio = _char.StaminaRatio,
-                burntStaminaRatio = _char.Stats.BurntStaminaRatio,
-                manaRatio = _char.ManaRatio,
-                burntManaRatio = _char.Stats.BurntManaRatio
+                HealthRatio = character.HealthRatio,
+                BurntHealthRatio = character.Stats.BurntHealthRatio,
+                StaminaRatio = character.StaminaRatio,
+                BurntStaminaRatio = character.Stats.BurntStaminaRatio,
+                ManaRatio = character.ManaRatio,
+                BurntManaRatio = character.Stats.BurntManaRatio
             };
 
-            _char.Stats.RestoreAllVitals();
-
-            foreach (BBSetting _bbs in _config.Settings)
+            foreach (BBSetting _bbs in config.Settings)
             {
                 if (_bbs is FloatSetting _f)
                 {
-                    Tag _tag = TagSourceManager.Instance.GetTag(AT.GetTagUID(_f.Name));
-                    bool _mult = (bool)_config.GetValue(_f.Name + Settings.modMult);
+                    Tag _tag = TagSourceManager.Instance.GetTag(AT.GetTagUid(_f.Name));
+                    bool _mult = (bool)config.GetValue(_f.Name + Settings.ModMult);
 
-                    if (_flag)
+                    if (flag)
                     {
-                        SetCustomStat(_char.Stats, _stackSource, _tag, _mult ? _f.m_value / 100f : _f.m_value, _mult, _config);
+                        SetCustomStat(character.Stats, stackSource, _tag, 
+                            _mult ? _f.m_value / 100f : _f.m_value,
+                            _mult, config);
                     }
                     else
                     {
-                        ClearCustomStat(_char.Stats, _tag, _stackSource, _mult);
+                        ClearCustomStat(character.Stats, _tag, stackSource, _mult);
                     }
                     
                 }
             }
 
-            instance.UpdateVitals(_char.Stats, _ratios, _config);
+            UpdateVitals(character.Stats, _ratios, config);
 
-            if (!_char.IsAI)
+            if (!character.IsAI)
             {
-                if (_lastVitals.ContainsKey(_char.UID))
-                {
-                    _lastVitals.Remove(_char.UID);
-                }
-
-                _lastVitals.Add(_char.UID, _ratios);
-                SaveVitalsInfo();
+                SaveVitalsInfo(character.UID);
             }
         }
 
-        private void SetCustomStat(CharacterStats _stats, string _stackSource, Tag _tag, float _val, bool _mult, ModConfig _config)
+        // monster switch statement ahead...
+        private void SetCustomStat(CharacterStats stats, string stackSource, Tag statTag, float value, bool mult, ModConfig config)
         {
-            Stat[] _dmg = (Stat[])AT.GetValue(typeof(CharacterStats), _stats, "m_damageTypesModifier");
-            Stat[] _pro = (Stat[])AT.GetValue(typeof(CharacterStats), _stats, "m_damageProtection");
-            Stat[] _res = (Stat[])AT.GetValue(typeof(CharacterStats), _stats, "m_damageResistance");
+            ClearCustomStat(stats, statTag, stackSource, mult);
+            stats.RefreshVitalMaxStat();
+            Stat[] _dmg = (Stat[])AT.GetValue(typeof(CharacterStats), stats, "m_damageTypesModifier");
+            Stat[] _pro = (Stat[])AT.GetValue(typeof(CharacterStats), stats, "m_damageProtection");
+            Stat[] _res = (Stat[])AT.GetValue(typeof(CharacterStats), stats, "m_damageResistance");
 
-            ClearCustomStat(_stats, _tag, _stackSource, _mult);
-            _stats.RefreshVitalMaxStat();
-
-            switch (_tag.TagName)
+            switch (statTag.TagName)
             {
                 case "MaxHealth":
-                    _stats.AddStatStack(_tag, new StatStack(_stackSource, Modify(_mult, AT.GetCharacterStat(_stats, "m_maxHealthStat"), _val, CharacterStats.MIN_MAXHEALTH_LIMIT, _config)), _mult);
+                    stats.AddStatStack(statTag, new StatStack(stackSource, Modify(mult, AT.GetCharacterStat(stats, "m_maxHealthStat"), value, CharacterStats.MIN_MAXHEALTH_LIMIT, config)), mult);
                     break;
                 case "HealthRegen":
-                    _stats.AddStatStack(_tag, new StatStack(_stackSource, Modify(_mult, AT.GetCharacterStat(_stats, "m_healthRegen"), _val, Settings.minimum, _config)), _mult);
+                    stats.AddStatStack(statTag, new StatStack(stackSource, Modify(mult, AT.GetCharacterStat(stats, "m_healthRegen"), value, Settings.Minimum, config)), mult);
                     break;
                 case "HealthBurn":
-                    _stats.AddStatStack(_tag, new StatStack(_stackSource, Modify(_mult, AT.GetCharacterStat(_stats, "m_burntHealthModifier"), _val, Settings.minimumMod, _config)), _mult);
+                    stats.AddStatStack(statTag, new StatStack(stackSource, Modify(mult, AT.GetCharacterStat(stats, "m_burntHealthModifier"), value, Settings.MinimumMod, config)), mult);
                     break;
                 case "MaxStamina":
-                    _stats.AddStatStack(_tag, new StatStack(_stackSource, Modify(_mult, AT.GetCharacterStat(_stats, "m_maxStamina"), _val, CharacterStats.MIN_MAXSTAMINA_LIMIT, _config)), _mult);
+                    stats.AddStatStack(statTag, new StatStack(stackSource, Modify(mult, AT.GetCharacterStat(stats, "m_maxStamina"), value, CharacterStats.MIN_MAXSTAMINA_LIMIT, config)), mult);
                     break;
                 case "StaminaRegen":
-                    _stats.AddStatStack(_tag, new StatStack(_stackSource, Modify(_mult, AT.GetCharacterStat(_stats, "m_staminaRegen"), _val, Settings.minimumMod, _config)), _mult);
+                    stats.AddStatStack(statTag, new StatStack(stackSource, Modify(mult, AT.GetCharacterStat(stats, "m_staminaRegen"), value, Settings.MinimumMod, config)), mult);
                     break;
                 case "StaminaUse":
                 case "StaminaCostReduction":
-                    _stats.AddStatStack(_tag, new StatStack(_stackSource, Modify(_mult, AT.GetCharacterStat(_stats, "m_staminaUseModifiers"), _val, Settings.minimum, _config)), _mult);
+                    stats.AddStatStack(statTag, new StatStack(stackSource, Modify(mult, AT.GetCharacterStat(stats, "m_staminaUseModifiers"), value, Settings.Minimum, config)), mult);
                     break;
                 case "StaminaBurn":
-                    _stats.AddStatStack(_tag, new StatStack(_stackSource, Modify(_mult, AT.GetCharacterStat(_stats, "m_burntStaminaModifier"), _val, Settings.minimumMod, _config)), _mult);
+                    stats.AddStatStack(statTag, new StatStack(stackSource, Modify(mult, AT.GetCharacterStat(stats, "m_burntStaminaModifier"), value, Settings.MinimumMod, config)), mult);
                     break;
                 case "MaxMana":
-                    _stats.AddStatStack(_tag, new StatStack(_stackSource, Modify(_mult, AT.GetCharacterStat(_stats, "m_maxManaStat"), _val, Settings.minimum, _config)), _mult);
+                    stats.AddStatStack(statTag, new StatStack(stackSource, Modify(mult, AT.GetCharacterStat(stats, "m_maxManaStat"), value, Settings.Minimum, config)), mult);
                     break;
                 case "ManaRegen":
-                    _stats.AddStatStack(_tag, new StatStack(_stackSource, Modify(_mult, AT.GetCharacterStat(_stats, "m_manaRegen"), _val, Settings.minimum, _config)), _mult);
+                    stats.AddStatStack(statTag, new StatStack(stackSource, Modify(mult, AT.GetCharacterStat(stats, "m_manaRegen"), value, Settings.Minimum, config)), mult);
                     break;
                 case "ManaUse":
-                    _stats.AddStatStack(_tag, new StatStack(_stackSource, Modify(_mult, AT.GetCharacterStat(_stats, "m_manaUseModifiers"), _val, Settings.minimum, _config)), _mult);
+                    stats.AddStatStack(statTag, new StatStack(stackSource, Modify(mult, AT.GetCharacterStat(stats, "m_manaUseModifiers"), value, Settings.Minimum, config)), mult);
                     break;
                 case "ManaBurn":
-                    _stats.AddStatStack(_tag, new StatStack(_stackSource, Modify(_mult, AT.GetCharacterStat(_stats, "m_burntManaModifier"), _val, Settings.minimumMod, _config)), _mult);
+                    stats.AddStatStack(statTag, new StatStack(stackSource, Modify(mult, AT.GetCharacterStat(stats, "m_burntManaModifier"), value, Settings.MinimumMod, config)), mult);
                     break;
                 case "Impact":
-                    _stats.AddStatStack(_tag, new StatStack(_stackSource, Modify(_mult, AT.GetCharacterStat(_stats, "m_impactModifier"), _val, Settings.minimum, _config)), _mult);
+                    stats.AddStatStack(statTag, new StatStack(stackSource, Modify(mult, AT.GetCharacterStat(stats, "m_impactModifier"), value, Settings.Minimum, config)), mult);
                     break;
                 case "AllDamages":
-                    _stats.AddStatStack(_tag, new StatStack(_stackSource, Modify(_mult, AT.GetCharacterStat(_stats, "m_damageModifiers"), _val, Settings.minimum, _config)), _mult);
+                    stats.AddStatStack(statTag, new StatStack(stackSource, Modify(mult, AT.GetCharacterStat(stats, "m_damageModifiers"), value, Settings.Minimum, config)), mult);
                     break;
                 case "PhysicalDamage":
-                    _stats.AddStatStack(_tag, new StatStack(_stackSource, Modify(_mult, _dmg[0].CurrentValue, _val, Settings.minimum, _config)), _mult);
+                    stats.AddStatStack(statTag, new StatStack(stackSource, Modify(mult, _dmg[0].CurrentValue, value, Settings.Minimum, config)), mult);
                     break;
                 case "EtherealDamage":
-                    _stats.AddStatStack(_tag, new StatStack(_stackSource, Modify(_mult, _dmg[1].CurrentValue, _val, Settings.minimum, _config)), _mult);
+                    stats.AddStatStack(statTag, new StatStack(stackSource, Modify(mult, _dmg[1].CurrentValue, value, Settings.Minimum, config)), mult);
                     break;
                 case "DecayDamage":
                 case "DarkDamage":
-                    _stats.AddStatStack(_tag, new StatStack(_stackSource, Modify(_mult, _dmg[2].CurrentValue, _val, Settings.minimum, _config)), _mult);
+                    stats.AddStatStack(statTag, new StatStack(stackSource, Modify(mult, _dmg[2].CurrentValue, value, Settings.Minimum, config)), mult);
                     break;
                 case "ElectricDamage":
                 case "LightDamage":
-                    _stats.AddStatStack(_tag, new StatStack(_stackSource, Modify(_mult, _dmg[3].CurrentValue, _val, Settings.minimum, _config)), _mult);
+                    stats.AddStatStack(statTag, new StatStack(stackSource, Modify(mult, _dmg[3].CurrentValue, value, Settings.Minimum, config)), mult);
                     break;
                 case "FrostDamage":
-                    _stats.AddStatStack(_tag, new StatStack(_stackSource, Modify(_mult, _dmg[4].CurrentValue, _val, Settings.minimum, _config)), _mult);
+                    stats.AddStatStack(statTag, new StatStack(stackSource, Modify(mult, _dmg[4].CurrentValue, value, Settings.Minimum, config)), mult);
                     break;
                 case "FireDamage":
-                    _stats.AddStatStack(_tag, new StatStack(_stackSource, Modify(_mult, _dmg[5].CurrentValue, _val, Settings.minimum, _config)), _mult);
+                    stats.AddStatStack(statTag, new StatStack(stackSource, Modify(mult, _dmg[5].CurrentValue, value, Settings.Minimum, config)), mult);
                     break;
                 case "DamageProtection":
-                    _stats.AddStatStack(_tag, new StatStack(_stackSource, Modify(_mult, AT.GetCharacterStat(_stats, "m_allDamageProtection"), _val, Settings.minimum, _config)), _mult);
+                    stats.AddStatStack(statTag, new StatStack(stackSource, Modify(mult, AT.GetCharacterStat(stats, "m_allDamageProtection"), value, Settings.Minimum, config)), mult);
                     break;
                 case "PhysicalProtection":
-                    _stats.AddStatStack(_tag, new StatStack(_stackSource, Modify(_mult, _pro[0].CurrentValue, _val, Settings.minimum, _config)), _mult);
+                    stats.AddStatStack(statTag, new StatStack(stackSource, Modify(mult, _pro[0].CurrentValue, value, Settings.Minimum, config)), mult);
                     break;
                 case "EtherealProtection":
-                    _stats.AddStatStack(_tag, new StatStack(_stackSource, Modify(_mult, _pro[1].CurrentValue, _val, Settings.minimum, _config)), _mult);
+                    stats.AddStatStack(statTag, new StatStack(stackSource, Modify(mult, _pro[1].CurrentValue, value, Settings.Minimum, config)), mult);
                     break;
                 case "DecayProtection":
-                    _stats.AddStatStack(_tag, new StatStack(_stackSource, Modify(_mult, _pro[2].CurrentValue, _val, Settings.minimum, _config)), _mult);
+                    stats.AddStatStack(statTag, new StatStack(stackSource, Modify(mult, _pro[2].CurrentValue, value, Settings.Minimum, config)), mult);
                     break;
                 case "ElectricProtection":
-                    _stats.AddStatStack(_tag, new StatStack(_stackSource, Modify(_mult, _pro[3].CurrentValue, _val, Settings.minimum, _config)), _mult);
+                    stats.AddStatStack(statTag, new StatStack(stackSource, Modify(mult, _pro[3].CurrentValue, value, Settings.Minimum, config)), mult);
                     break;
                 case "FrostProtection":
-                    _stats.AddStatStack(_tag, new StatStack(_stackSource, Modify(_mult, _pro[4].CurrentValue, _val, Settings.minimum, _config)), _mult);
+                    stats.AddStatStack(statTag, new StatStack(stackSource, Modify(mult, _pro[4].CurrentValue, value, Settings.Minimum, config)), mult);
                     break;
                 case "FireProtection":
-                    _stats.AddStatStack(_tag, new StatStack(_stackSource, Modify(_mult, _pro[5].CurrentValue, _val, Settings.minimum, _config)), _mult);
+                    stats.AddStatStack(statTag, new StatStack(stackSource, Modify(mult, _pro[5].CurrentValue, value, Settings.Minimum, config)), mult);
                     break;
                 case "DarkProtection":
-                    _stats.AddStatStack(_tag, new StatStack(_stackSource, Modify(_mult, _pro[6].CurrentValue, _val, Settings.minimum, _config)), _mult);
+                    stats.AddStatStack(statTag, new StatStack(stackSource, Modify(mult, _pro[6].CurrentValue, value, Settings.Minimum, config)), mult);
                     break;
                 case "LightProtection":
-                    _stats.AddStatStack(_tag, new StatStack(_stackSource, Modify(_mult, _pro[7].CurrentValue, _val, Settings.minimum, _config)), _mult);
+                    stats.AddStatStack(statTag, new StatStack(stackSource, Modify(mult, _pro[7].CurrentValue, value, Settings.Minimum, config)), mult);
                     break;
                 case "AllResistances":
                 case "DamageResistance":
-                    _stats.AddStatStack(_tag, new StatStack(_stackSource, Modify(_mult, AT.GetCharacterStat(_stats, "m_resistanceModifiers"), _val, Settings.minimum, _config)), _mult);
+                    stats.AddStatStack(statTag, new StatStack(stackSource, Modify(mult, AT.GetCharacterStat(stats, "m_resistanceModifiers"), value, Settings.Minimum, config)), mult);
                     break;
                 case "PhysicalResistance":
-                    _stats.AddStatStack(_tag, new StatStack(_stackSource, Modify(_mult, _res[0].CurrentValue, _val, Settings.minimum, _config)), _mult);
+                    stats.AddStatStack(statTag, new StatStack(stackSource, Modify(mult, _res[0].CurrentValue, value, Settings.Minimum, config)), mult);
                     break;
                 case "EtherealResistance":
-                    _stats.AddStatStack(_tag, new StatStack(_stackSource, Modify(_mult, _res[1].CurrentValue, _val, Settings.minimum, _config)), _mult);
+                    stats.AddStatStack(statTag, new StatStack(stackSource, Modify(mult, _res[1].CurrentValue, value, Settings.Minimum, config)), mult);
                     break;
                 case "DecayResistance":
-                    _stats.AddStatStack(_tag, new StatStack(_stackSource, Modify(_mult, _res[2].CurrentValue, _val, Settings.minimum, _config)), _mult);
+                    stats.AddStatStack(statTag, new StatStack(stackSource, Modify(mult, _res[2].CurrentValue, value, Settings.Minimum, config)), mult);
                     break;
                 case "ElectricResistance":
-                    _stats.AddStatStack(_tag, new StatStack(_stackSource, Modify(_mult, _res[3].CurrentValue, _val, Settings.minimum, _config)), _mult);
+                    stats.AddStatStack(statTag, new StatStack(stackSource, Modify(mult, _res[3].CurrentValue, value, Settings.Minimum, config)), mult);
                     break;
                 case "FrostResistance":
-                    _stats.AddStatStack(_tag, new StatStack(_stackSource, Modify(_mult, _res[4].CurrentValue, _val, Settings.minimum, _config)), _mult);
+                    stats.AddStatStack(statTag, new StatStack(stackSource, Modify(mult, _res[4].CurrentValue, value, Settings.Minimum, config)), mult);
                     break;
                 case "FireResistance":
-                    _stats.AddStatStack(_tag, new StatStack(_stackSource, Modify(_mult, _res[5].CurrentValue, _val, Settings.minimum, _config)), _mult);
+                    stats.AddStatStack(statTag, new StatStack(stackSource, Modify(mult, _res[5].CurrentValue, value, Settings.Minimum, config)), mult);
                     break;
                 case "DarkResistance":
-                    _stats.AddStatStack(_tag, new StatStack(_stackSource, Modify(_mult, _res[6].CurrentValue, _val, Settings.minimum, _config)), _mult);
+                    stats.AddStatStack(statTag, new StatStack(stackSource, Modify(mult, _res[6].CurrentValue, value, Settings.Minimum, config)), mult);
                     break;
                 case "LightResistance":
-                    _stats.AddStatStack(_tag, new StatStack(_stackSource, Modify(_mult, _res[7].CurrentValue, _val, Settings.minimum, _config)), _mult);
+                    stats.AddStatStack(statTag, new StatStack(stackSource, Modify(mult, _res[7].CurrentValue, value, Settings.Minimum, config)), mult);
                     break;
                 case "ImpactResistance":
-                    _stats.AddStatStack(_tag, new StatStack(_stackSource, Modify(_mult, AT.GetCharacterStat(_stats, "m_impactResistance"), _val, Settings.minimum, _config)), _mult);
+                    stats.AddStatStack(statTag, new StatStack(stackSource, Modify(mult, AT.GetCharacterStat(stats, "m_impactResistance"), value, Settings.Minimum, config)), mult);
                     break;
                 case "StabilityRegen":
-                    _stats.AddStatStack(_tag, new StatStack(_stackSource, Modify(_mult, AT.GetCharacterStat(_stats, "m_stabilityRegen"), _val, Settings.minimumMod, _config)), _mult);
+                    stats.AddStatStack(statTag, new StatStack(stackSource, Modify(mult, AT.GetCharacterStat(stats, "m_stabilityRegen"), value, Settings.MinimumMod, config)), mult);
                     break;
                 case "EnvColdProtection":
-                    _stats.AddStatStack(_tag, new StatStack(_stackSource, Modify(_mult, AT.GetCharacterStat(_stats, "m_coldProtection"), _val, Settings.minimum, _config)), _mult);
+                    stats.AddStatStack(statTag, new StatStack(stackSource, Modify(mult, AT.GetCharacterStat(stats, "m_coldProtection"), value, Settings.Minimum, config)), mult);
                     break;
                 case "EnvHeatProtection":
-                    _stats.AddStatStack(_tag, new StatStack(_stackSource, Modify(_mult, AT.GetCharacterStat(_stats, "m_heatProtection"), _val, Settings.minimum, _config)), _mult);
+                    stats.AddStatStack(statTag, new StatStack(stackSource, Modify(mult, AT.GetCharacterStat(stats, "m_heatProtection"), value, Settings.Minimum, config)), mult);
                     break;
                 case "ColdRegen":
-                    _stats.AddStatStack(_tag, new StatStack(_stackSource, Modify(_mult, AT.GetCharacterStat(_stats, "m_coldRegenRate"), _val, Settings.minimumMod, _config)), _mult);
+                    stats.AddStatStack(statTag, new StatStack(stackSource, Modify(mult, AT.GetCharacterStat(stats, "m_coldRegenRate"), value, Settings.MinimumMod, config)), mult);
                     break;
                 case "HeatRegen":
-                    _stats.AddStatStack(_tag, new StatStack(_stackSource, Modify(_mult, AT.GetCharacterStat(_stats, "m_heatRegenRate"), _val, Settings.minimumMod, _config)), _mult);
+                    stats.AddStatStack(statTag, new StatStack(stackSource, Modify(mult, AT.GetCharacterStat(stats, "m_heatRegenRate"), value, Settings.MinimumMod, config)), mult);
                     break;
                 case "Waterproof":
-                    _stats.AddStatStack(_tag, new StatStack(_stackSource, Modify(_mult, AT.GetCharacterStat(_stats, "m_waterproof"), _val, Settings.minimum, _config)), _mult);
+                    stats.AddStatStack(statTag, new StatStack(stackSource, Modify(mult, AT.GetCharacterStat(stats, "m_waterproof"), value, Settings.Minimum, config)), mult);
                     break;
                 case "CorruptionResistance":
-                    _stats.AddStatStack(_tag, new StatStack(_stackSource, Modify(_mult, AT.GetCharacterStat(_stats, "m_corruptionResistance"), _val, Settings.minimum, _config)), _mult);
+                    stats.AddStatStack(statTag, new StatStack(stackSource, Modify(mult, AT.GetCharacterStat(stats, "m_corruptionResistance"), value, Settings.Minimum, config)), mult);
                     break;
                 case "TemperatureModifier":
-                    _stats.AddStatStack(_tag, new StatStack(_stackSource, Modify(_mult, AT.GetCharacterStat(_stats, "m_temperatureModifier"), _val, Settings.minimum, _config)), _mult);
+                    stats.AddStatStack(statTag, new StatStack(stackSource, Modify(mult, AT.GetCharacterStat(stats, "m_temperatureModifier"), value, Settings.Minimum, config)), mult);
                     break;
                 case "MovementSpeed":
-                    _stats.AddStatStack(_tag, new StatStack(_stackSource, Modify(_mult, AT.GetCharacterStat(_stats, "m_movementSpeed"), _val, Settings.minimumMod, _config)), _mult);
+                    stats.AddStatStack(statTag, new StatStack(stackSource, Modify(mult, AT.GetCharacterStat(stats, "m_movementSpeed"), value, Settings.MinimumMod, config)), mult);
                     break;
                 case "Speed":
-                    _stats.AddStatStack(_tag, new StatStack(_stackSource, Modify(_mult, AT.GetCharacterStat(_stats, "m_speedModifier"), _val, Settings.minimumMod, _config)), _mult);
+                    stats.AddStatStack(statTag, new StatStack(stackSource, Modify(mult, AT.GetCharacterStat(stats, "m_speedModifier"), value, Settings.MinimumMod, config)), mult);
                     break;
                 case "AttackSpeed":
-                    _stats.AddStatStack(_tag, new StatStack(_stackSource, Modify(_mult, AT.GetCharacterStat(_stats, "m_attackSpeedModifier"), _val, Settings.minimumMod, _config)), _mult);
+                    stats.AddStatStack(statTag, new StatStack(stackSource, Modify(mult, AT.GetCharacterStat(stats, "m_attackSpeedModifier"), value, Settings.MinimumMod, config)), mult);
                     break;
                 case "DodgeInvulnerabilityModifier":
-                    _stats.AddStatStack(_tag, new StatStack(_stackSource, Modify(_mult, AT.GetCharacterStat(_stats, "m_dodgeInvulneratiblityModifier"), _val, Settings.minimumMod, _config)), _mult);
+                    stats.AddStatStack(statTag, new StatStack(stackSource, Modify(mult, AT.GetCharacterStat(stats, "m_dodgeInvulneratiblityModifier"), value, Settings.MinimumMod, config)), mult);
                     break;
                 case "Detectability":
-                    _stats.AddStatStack(_tag, new StatStack(_stackSource, Modify(_mult, AT.GetCharacterStat(_stats, "m_detectability"), _val, Settings.minimum, _config)), _mult);
+                    stats.AddStatStack(statTag, new StatStack(stackSource, Modify(mult, AT.GetCharacterStat(stats, "m_detectability"), value, Settings.Minimum, config)), mult);
                     break;
                 case "VisualDetectability":
-                    _stats.AddStatStack(_tag, new StatStack(_stackSource, Modify(_mult, AT.GetCharacterStat(_stats, "m_visualDetectability"), _val, Settings.minimum, _config)), _mult);
+                    stats.AddStatStack(statTag, new StatStack(stackSource, Modify(mult, AT.GetCharacterStat(stats, "m_visualDetectability"), value, Settings.Minimum, config)), mult);
                     break;
                 case "PouchCapacity":
-                    _stats.AddStatStack(_tag, new StatStack(_stackSource, Modify(_mult, AT.GetCharacterStat(_stats, "m_pouchCapacity"), _val, Settings.minimum, _config)), _mult);
+                    stats.AddStatStack(statTag, new StatStack(stackSource, Modify(mult, AT.GetCharacterStat(stats, "m_pouchCapacity"), value, Settings.Minimum, config)), mult);
                     break;
                 case "FoodEffectEfficiency":
-                    _stats.AddStatStack(_tag, new StatStack(_stackSource, Modify(_mult, AT.GetCharacterStat(_stats, "m_foodEffectEfficiency"), _val, Settings.minimum, _config)), _mult);
+                    stats.AddStatStack(statTag, new StatStack(stackSource, Modify(mult, AT.GetCharacterStat(stats, "m_foodEffectEfficiency"), value, Settings.Minimum, config)), mult);
                     break;
                 case "SkillCooldownModifier":
-                    _stats.AddStatStack(_tag, new StatStack(_stackSource, Modify(_mult, AT.GetCharacterStat(_stats, "m_skillCooldownModifier"), _val, Settings.minimumMod, _config)), _mult);
+                    stats.AddStatStack(statTag, new StatStack(stackSource, Modify(mult, AT.GetCharacterStat(stats, "m_skillCooldownModifier"), value, Settings.MinimumMod, config)), mult);
                     break;
                 case "BuyModifier":
-                    _stats.AddStatStack(_tag, new StatStack(_stackSource, Modify(_mult, AT.GetCharacterStat(_stats, "m_buyModifier"), _val, Settings.minimumMod, _config)), _mult);
+                    stats.AddStatStack(statTag, new StatStack(stackSource, Modify(mult, AT.GetCharacterStat(stats, "m_buyModifier"), value, Settings.MinimumMod, config)), mult);
                     break;
                 case "SellModifier":
-                    _stats.AddStatStack(_tag, new StatStack(_stackSource, Modify(_mult, AT.GetCharacterStat(_stats, "m_sellModifier"), _val, Settings.minimumMod, _config)), _mult);
+                    stats.AddStatStack(statTag, new StatStack(stackSource, Modify(mult, AT.GetCharacterStat(stats, "m_sellModifier"), value, Settings.MinimumMod, config)), mult);
                     break;
                 case "FoodDepleteRate":
-                    _stats.AddStatStack(_tag, new StatStack(_stackSource, Modify(_mult, AT.GetPlayerStat(_stats.GetComponent<PlayerCharacterStats>(), "m_foodDepletionRate"), _val, Settings.minimumMod, _config)), _mult);
+                    stats.AddStatStack(statTag, new StatStack(stackSource, Modify(mult, AT.GetPlayerStat(stats.GetComponent<PlayerCharacterStats>(), "m_foodDepletionRate"), value, Settings.MinimumMod, config)), mult);
                     break;
                 case "DrinkDepleteRate":
-                    _stats.AddStatStack(_tag, new StatStack(_stackSource, Modify(_mult, AT.GetPlayerStat(_stats.GetComponent<PlayerCharacterStats>(), "m_drinkDepletionRate"), _val, Settings.minimumMod, _config)), _mult);
+                    stats.AddStatStack(statTag, new StatStack(stackSource, Modify(mult, AT.GetPlayerStat(stats.GetComponent<PlayerCharacterStats>(), "m_drinkDepletionRate"), value, Settings.MinimumMod, config)), mult);
                     break;
                 case "SleepDepleteRate":
-                    _stats.AddStatStack(_tag, new StatStack(_stackSource, Modify(_mult, AT.GetPlayerStat(_stats.GetComponent<PlayerCharacterStats>(), "m_sleepDepletionRate"), _val, Settings.minimumMod, _config)), _mult);
+                    stats.AddStatStack(statTag, new StatStack(stackSource, Modify(mult, AT.GetPlayerStat(stats.GetComponent<PlayerCharacterStats>(), "m_sleepDepletionRate"), value, Settings.MinimumMod, config)), mult);
                     break;
             }
         }
 
-        private void ClearCustomStat(CharacterStats _stats, Tag _tag, string _stackSource, bool _mult)
+        private void ClearCustomStat(CharacterStats stats, Tag statTag, string stackSource, bool mult)
         {
-            _stats.RemoveStatStack(_tag, _stackSource, !_mult);
-            _stats.RemoveStatStack(_tag, _stackSource, _mult);
+            stats.RemoveStatStack(statTag, stackSource, !mult);
+            stats.RemoveStatStack(statTag, stackSource, mult);
         }
 
-        private void UpdateVitals(CharacterStats _stats, VitalsInfo _ratios, ModConfig _config)
+        private void UpdateVitals(CharacterStats stats, VitalsInfo ratios, ModConfig config)
         {
             float _hp, _hpb, _sp, _spb, _mp, _mpb;
-            _stats.RefreshVitalMaxStat();
-            if (!(bool)_config.GetValue(Settings.gameBehaviour) && !_stats.GetComponent<Character>().IsAI)
+
+            stats.RefreshVitalMaxStat();
+
+            if (!(bool)config.GetValue(Settings.GameBehaviour) && stats.GetComponent<Character>().IsLocalPlayer)
             {
-                _hp = SaveManager.Instance.GetCharacterSave(_stats.GetComponent<Character>().UID).PSave.Health;
-                _hpb = SaveManager.Instance.GetCharacterSave(_stats.GetComponent<Character>().UID).PSave.BurntHealth;
-                _sp = SaveManager.Instance.GetCharacterSave(_stats.GetComponent<Character>().UID).PSave.Stamina;
-                _spb = SaveManager.Instance.GetCharacterSave(_stats.GetComponent<Character>().UID).PSave.BurntStamina;
-                _mp = SaveManager.Instance.GetCharacterSave(_stats.GetComponent<Character>().UID).PSave.Mana;
-                _mpb = SaveManager.Instance.GetCharacterSave(_stats.GetComponent<Character>().UID).PSave.BurntMana;
+                _hp = SaveManager.Instance.GetCharacterSave(stats.GetComponent<Character>().UID).PSave.Health;
+                _hpb = SaveManager.Instance.GetCharacterSave(stats.GetComponent<Character>().UID).PSave.BurntHealth;
+                _sp = SaveManager.Instance.GetCharacterSave(stats.GetComponent<Character>().UID).PSave.Stamina;
+                _spb = SaveManager.Instance.GetCharacterSave(stats.GetComponent<Character>().UID).PSave.BurntStamina;
+                _mp = SaveManager.Instance.GetCharacterSave(stats.GetComponent<Character>().UID).PSave.Mana;
+                _mpb = SaveManager.Instance.GetCharacterSave(stats.GetComponent<Character>().UID).PSave.BurntMana;
             }
             else
             {
-                _hp = _stats.MaxHealth * _ratios.healthRatio;
-                _hpb = _stats.MaxHealth * _ratios.burntHealthRatio;
-                _sp = _stats.MaxStamina * _ratios.staminaRatio;
-                _spb = _stats.MaxStamina * _ratios.burntStaminaRatio;
-                _mp = _stats.MaxMana * _ratios.manaRatio;
-                _mpb = _stats.MaxMana * _ratios.burntManaRatio;
+                _hp = stats.MaxHealth * ratios.HealthRatio;
+                _hpb = stats.MaxHealth * ratios.BurntHealthRatio;
+                _sp = stats.MaxStamina * ratios.StaminaRatio;
+                _spb = stats.MaxStamina * ratios.BurntStaminaRatio;
+                _mp = stats.MaxMana * ratios.ManaRatio;
+                _mpb = stats.MaxMana * ratios.BurntManaRatio;
             }
 
-            _stats.SetHealth(_hp);
-            AT.SetValue(_hpb, typeof(CharacterStats), _stats, "m_burntHealth");
-            AT.SetValue(_sp, typeof(CharacterStats), _stats, "m_stamina");
-            AT.SetValue(_spb, typeof(CharacterStats), _stats, "m_burntStamina");
-            _stats.SetMana(_mp);
-            AT.SetValue(_mpb, typeof(CharacterStats), _stats, "m_burntMana");
+            stats.SetHealth(_hp);
+            AT.SetValue(_hpb, typeof(CharacterStats), stats, "m_burntHealth");
+            AT.SetValue(_sp, typeof(CharacterStats), stats, "m_stamina");
+            AT.SetValue(_spb, typeof(CharacterStats), stats, "m_burntStamina");
+            stats.SetMana(_mp);
+            AT.SetValue(_mpb, typeof(CharacterStats), stats, "m_burntMana");
         }
 
         private bool UpdateVitalsInfo()
         {
-            bool _boo = false;
-
             if (Time.time - _lastVitalsUpdate > 12f)
             {
-                foreach (Character c in CharacterManager.Instance.Characters.Values)
+                foreach (Character _c in CharacterManager.Instance.Characters.Values)
                 {
-                    if (_lastVitals.ContainsKey(c.UID) && c.HealthRatio != _lastVitals.GetValueSafe(c.UID).healthRatio && c.HealthRatio <= 1)
+                    if (_lastVitals.ContainsKey(_c.UID)
+                        && _c.HealthRatio != _lastVitals.GetValueSafe(_c.UID).HealthRatio
+                        && _c.HealthRatio <= 1)
                     {
-                        _boo = true;
+                        return true;
                     }
                 }
-
                 _lastVitalsUpdate = Time.time;
-                return _boo;
+                return false;
             }
             else
             {
-                return _boo;
+                return false;
             }
         }
 
-        private VitalsInfo LoadVitalsInfo(string _uid)
+        private VitalsInfo LoadVitalsInfo(string uid)
         {
-            string _path = _file + "_" + _uid + _ext;
+            string _path = $"{ _file}_{ uid }{ _ext }";
 
             if (File.Exists(_path))
             {
@@ -621,41 +645,46 @@ namespace CustomGameStats
             return null;
         }
 
-        private void SaveVitalsInfo()
+        private void SaveVitalsInfo(string targetUid = null)
         {
             if (!Directory.Exists(_dir))
             {
                 Directory.CreateDirectory(_dir);
             }
 
-            foreach (Character c in CharacterManager.Instance.Characters.Values)
+            foreach (SplitPlayer _player in SplitScreenManager.Instance.LocalPlayers)
             {
-                if (c.IsLocalPlayer)
+                if (targetUid != null)
                 {
-                    string _path = _file + "_" + c.UID + _ext;
-                    VitalsInfo _vitals = new VitalsInfo
+                    if (_player.AssignedCharacter.UID != targetUid)
                     {
-                        healthRatio = c.HealthRatio,
-                        burntHealthRatio = c.Stats.BurntHealthRatio,
-                        staminaRatio = c.StaminaRatio,
-                        burntStaminaRatio = c.Stats.BurntStaminaRatio,
-                        manaRatio = c.ManaRatio,
-                        burntManaRatio = c.Stats.BurntManaRatio
-                    };
-
-                    if (File.Exists(_path))
-                    {
-                        File.Delete(_path);
+                        continue;
                     }
-
-                    if (_lastVitals.ContainsKey(c.UID))
-                    {
-                        _lastVitals.Remove(c.UID);
-                    }
-
-                    _lastVitals.Add(c.UID, _vitals);
-                    File.WriteAllText(_path, JsonUtility.ToJson(_vitals));
                 }
+
+                string _path = $"{_file}_{ _player.AssignedCharacter.UID }{ _ext }";
+                VitalsInfo _vitals = new VitalsInfo
+                {
+                    HealthRatio = _player.AssignedCharacter.HealthRatio,
+                    BurntHealthRatio = _player.AssignedCharacter.Stats.BurntHealthRatio,
+                    StaminaRatio = _player.AssignedCharacter.StaminaRatio,
+                    BurntStaminaRatio = _player.AssignedCharacter.Stats.BurntStaminaRatio,
+                    ManaRatio = _player.AssignedCharacter.ManaRatio,
+                    BurntManaRatio = _player.AssignedCharacter.Stats.BurntManaRatio
+                };
+
+                if (File.Exists(_path))
+                {
+                    File.Delete(_path);
+                }
+
+                if (_lastVitals.ContainsKey(_player.AssignedCharacter.UID))
+                {
+                    _lastVitals.Remove(_player.AssignedCharacter.UID);
+                }
+
+                _lastVitals.Add(_player.AssignedCharacter.UID, _vitals);
+                File.WriteAllText(_path, JsonUtility.ToJson(_vitals));
             }
         }
 
@@ -665,70 +694,73 @@ namespace CustomGameStats
             [HarmonyPrefix]
             public static bool Prefix(CharacterStats __instance)
             {
-                Character _char = __instance.GetComponent<Character>();
+                Character _c = __instance.GetComponent<Character>();
 
-                if ((!(bool)Main.playerConfig.GetValue(Settings.toggleSwitch) && !(bool)Main.aiConfig.GetValue(Settings.toggleSwitch)) || NetworkLevelLoader.Instance.IsGameplayPaused || (!_char.IsStartInitDone || !_char.IsLateInitDone))
+                if ((!(bool)CustomGameStats.PlayerConfig.GetValue(Settings.ToggleSwitch) 
+                    && !(bool)CustomGameStats.AIConfig.GetValue(Settings.ToggleSwitch)) 
+                    || NetworkLevelLoader.Instance.IsGameplayLoading
+                    || !_c.IsLateInitDone)
                 {
                     return true;
                 }
 
                 if (!PhotonNetwork.isNonMasterClientInRoom)
                 {
-                    if (!_char.IsAI)
+                    if (!_c.IsAI)
                     {
-                        if ((bool)Main.playerConfig.GetValue(Settings.toggleSwitch))
+                        if ((bool)CustomGameStats.PlayerConfig.GetValue(Settings.ToggleSwitch))
                         {
-                            instance.ApplyCustomStats(_char, Main.playerConfig, Settings.playerStats, true);
+                            Instance.ApplyCustomStats(_c, CustomGameStats.PlayerConfig, Settings.PlayerStats, true);
                         }
                         else
                         {
-                            instance.ApplyCustomStats(_char, Main.playerConfig, Settings.playerStats, false);
+                            Instance.ApplyCustomStats(_c, CustomGameStats.PlayerConfig, Settings.PlayerStats, false);
                         }
                     }
                     else
                     {
-                        if ((bool)Main.aiConfig.GetValue(Settings.toggleSwitch))
+                        if ((bool)CustomGameStats.AIConfig.GetValue(Settings.ToggleSwitch))
                         {
-                            instance.ApplyCustomStats(_char, Main.aiConfig, Settings.aiStats, true);
+                            Instance.ApplyCustomStats(_c, CustomGameStats.AIConfig, Settings.AIStats, true);
                         }
                         else
                         {
-                            instance.ApplyCustomStats(_char, Main.aiConfig, Settings.aiStats, false);
+                            Instance.ApplyCustomStats(_c, CustomGameStats.AIConfig, Settings.AIStats, false);
                         }
                     }
                 }
                 else
                 {
-                    if (!instance.playerSyncInit || !instance.aiSyncInit)
+                    if (!Instance._playerSyncInit || !Instance._aiSyncInit)
                     {
-                        instance.RequestSync();
+                        Instance.RequestSync();
                     }
 
-                    if (!_char.IsAI)
+                    if (!_c.IsAI)
                     {
-                        if (instance.currentPlayerSyncInfo != null && instance.playerSyncInit)
+                        if (Instance.CurrentPlayerSyncInfo != null && Instance._playerSyncInit)
                         {
-                            if ((bool)instance.currentPlayerSyncInfo.GetValue(Settings.toggleSwitch))
+                            if ((bool)Instance.CurrentPlayerSyncInfo.GetValue(Settings.ToggleSwitch))
                             {
-                                instance.ApplyCustomStats(_char, instance.currentPlayerSyncInfo, Settings.playerStats, true);
+                                Instance.ApplyCustomStats(_c, Instance.CurrentPlayerSyncInfo, Settings.PlayerStats, true);
                             }
                             else
                             {
-                                instance.ApplyCustomStats(_char, instance.currentPlayerSyncInfo, Settings.playerStats, false);
+                                Instance.ApplyCustomStats(_c, Instance.CurrentPlayerSyncInfo, Settings.PlayerStats, false);
                             }
                         }
                     }
                     else
                     {
-                        if (instance.currentAiSyncInfo != null && instance.aiSyncInit)
+                        if (Instance.CurrentAISyncInfo != null && Instance._aiSyncInit)
                         {
-                            if ((bool)instance.currentAiSyncInfo.GetValue(Settings.toggleSwitch))
+                            if ((bool)Instance.CurrentAISyncInfo.GetValue(Settings.ToggleSwitch))
                             {
-                                instance.ApplyCustomStats(_char, instance.currentAiSyncInfo, Settings.aiStats, true);
+                                Instance.ApplyCustomStats(_c, Instance.CurrentAISyncInfo, Settings.AIStats, true);
                             }
                             else
                             {
-                                instance.ApplyCustomStats(_char, instance.currentAiSyncInfo, Settings.aiStats, false);
+                                Instance.ApplyCustomStats(_c, Instance.CurrentAISyncInfo, Settings.AIStats, false);
                             }
                         }
                     }

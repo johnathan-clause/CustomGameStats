@@ -6,23 +6,23 @@ namespace CustomGameStats
 {
     public static class AT
     {
-        public static BindingFlags flags = BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Static;
+        private static readonly BindingFlags _flags = BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Static;
 
         public static void SetValue<T>(T value, Type type, object obj, string field)
         {
-            FieldInfo fieldInfo = type.GetField(field, flags);
-            if (fieldInfo != null)
+            FieldInfo _fieldInfo = type.GetField(field, _flags);
+            if (_fieldInfo != null)
             {
-                fieldInfo.SetValue(obj, value);
+                _fieldInfo.SetValue(obj, value);
             }
         }
 
         public static object GetValue(Type type, object obj, string value)
         {
-            FieldInfo fieldInfo = type.GetField(value, flags);
-            if (fieldInfo != null)
+            FieldInfo _fieldInfo = type.GetField(value, _flags);
+            if (_fieldInfo != null)
             {
-                return fieldInfo.GetValue(obj);
+                return _fieldInfo.GetValue(obj);
             }
             else
             {
@@ -30,11 +30,11 @@ namespace CustomGameStats
             }
         }
 
-        public static UID GetTagUID(string _tagName)
+        public static UID GetTagUid(string tagName)
         {
             foreach (Tag _tag in (Tag[])GetValue(typeof(TagSourceManager), TagSourceManager.Instance, "m_tags"))
             {
-                if (_tag.TagName.Equals(_tagName))
+                if (_tag.TagName.Equals(tagName))
                 {
                     return _tag.UID;
                 }
@@ -42,15 +42,15 @@ namespace CustomGameStats
             return null;
         }
 
-        public static float GetCharacterStat(CharacterStats _stats, string _field)
+        public static float GetCharacterStat(CharacterStats stats, string field)
         {
-            Stat _stat = (Stat)GetValue(typeof(CharacterStats), _stats, _field);
+            Stat _stat = (Stat)GetValue(typeof(CharacterStats), stats, field);
             return _stat.CurrentValue;
         }
 
-        public static float GetPlayerStat(PlayerCharacterStats _stats, string _field)
+        public static float GetPlayerStat(PlayerCharacterStats stats, string field)
         {
-            Stat _stat = (Stat)GetValue(typeof(PlayerCharacterStats), _stats, _field);
+            Stat _stat = (Stat)GetValue(typeof(PlayerCharacterStats), stats, field);
             return _stat.CurrentValue;
         }
     }
