@@ -7,13 +7,13 @@ using SharedModConfig;
 namespace CustomGameStats
 {
     [BepInPlugin(GUID, NAME, VERSION)]
-    [BepInDependency(DEPENDANT, BepInDependency.DependencyFlags.HardDependency)]
+    [BepInDependency(DEPENDENT, BepInDependency.DependencyFlags.HardDependency)]
     public class CustomGameStats : BaseUnityPlugin
     {
         public const string GUID = "com.theinterstice.customgamestats";
         public const string NAME = "Custom Game Stats";
         public const string VERSION = "2.1.3";
-        public const string DEPENDANT = SharedModConfig.SharedModConfig.GUID;
+        public const string DEPENDENT = SharedModConfig.SharedModConfig.GUID;
 
         public static CustomGameStats Instance { get; private set; }
         public static ModConfig PlayerConfig { get; private set; }
