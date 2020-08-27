@@ -12,7 +12,7 @@ namespace CustomGameStats
     {
         public const string GUID = "com.theinterstice.customgamestats";
         public const string NAME = "Custom Game Stats";
-        public const string VERSION = "2.1.2";
+        public const string VERSION = "2.1.3";
         public const string DEPENDANT = SharedModConfig.SharedModConfig.GUID;
 
         public static CustomGameStats Instance { get; private set; }
@@ -39,7 +39,7 @@ namespace CustomGameStats
             AIConfig = SetupConfig(Settings.AIStatsTitle);
             AIConfig.Register();
 
-            Logger.Log(LogLevel.Message, $"{ NAME } { VERSION } instantiated!");
+            Logger.Log(LogLevel.Message, $"{ NAME } v{ VERSION } initialized!");
         }
 
         private ModConfig SetupConfig(string flag)
