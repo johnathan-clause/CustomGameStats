@@ -692,6 +692,7 @@ namespace CustomGameStats
         public class CharacterStats_ApplyCoopStats
         {
             [HarmonyPrefix]
+            [HarmonyPriority(Priority.Last)]
             public static bool Prefix(CharacterStats __instance)
             {
                 Character _c = __instance.GetComponent<Character>();
