@@ -17,7 +17,7 @@ namespace CustomGameStats
 
 
         private static readonly string _dir = @"Mods\ModConfigs\";
-        private static readonly string _file = $"{_dir }{ Settings.ModName }";
+        private static readonly string _file = $"{ _dir }{ Settings.ModName } v{ CustomGameStats.VERSION }\\";
         private static readonly string _ext = ".json";
 
         private readonly Dictionary<string, VitalsInfo> _lastVitals = new Dictionary<string, VitalsInfo>();
@@ -135,6 +135,8 @@ namespace CustomGameStats
 
         private static void PlayerSyncHandler()  //host
         {
+            Instance.ResetSettings();
+
             if (Global.Lobby.PlayersInLobbyCount < 1) { return; }
 
             if (!PhotonNetwork.offlineMode && !PhotonNetwork.isNonMasterClientInRoom)
@@ -150,6 +152,8 @@ namespace CustomGameStats
 
         private static void AISyncHandler()  //host
         {
+            Instance.ResetSettings();
+
             if (Global.Lobby.PlayersInLobbyCount < 1) { return; }
 
             if (!PhotonNetwork.offlineMode && !PhotonNetwork.isNonMasterClientInRoom)
@@ -163,29 +167,33 @@ namespace CustomGameStats
             }
         }
 
-        private static float ModifyLogic(bool mult, float orig, float value, float limit)
+        private static float ModifyLogic(bool mult, float orig, float val, float limit)
         {
             if (mult)
             {
-                if (value < 0)
+                if (val < 0)
                 {
-                    if ((limit - orig) / orig > value)
+                    if ((limit - orig) / orig > val)
                     {
+                        Debug.Log($"Value: { (limit - orig) / orig }");
                         return (limit - orig) / orig;
                     }
                     else
                     {
-                        return value;
+                        Debug.Log($"Value: { val }");
+                        return val;
                     }
                 }
                 else
                 {
-                    return value;
+                    Debug.Log($"Value: { val }");
+                    return val;
                 }
             }
             else
             {
-                return Math.Max(limit - orig, value);
+                Debug.Log($"Value: { Math.Max(limit - orig, val) }");
+                return Math.Max(limit - orig, val);
             }
         }
 
@@ -375,7 +383,7 @@ namespace CustomGameStats
         private void SetCustomStat(CharacterStats stats, string stackSource, Tag statTag, float value, bool mult, ModConfig config)
         {
             ClearCustomStat(stats, statTag, stackSource);
-            stats.RefreshVitalMaxStat();
+
             Stat[] _dmg = (Stat[])AT.GetValue(typeof(CharacterStats), stats, "m_damageTypesModifier");
             Stat[] _pro = (Stat[])AT.GetValue(typeof(CharacterStats), stats, "m_damageProtection");
             Stat[] _res = (Stat[])AT.GetValue(typeof(CharacterStats), stats, "m_damageResistance");
@@ -397,7 +405,6 @@ namespace CustomGameStats
                 case "StaminaRegen":
                     stats.AddStatStack(statTag, new StatStack(stackSource, Modify(mult, AT.GetCharacterStat(stats, "m_staminaRegen"), value, Settings.MinimumMod, config)), mult);
                     break;
-                case "StaminaUse":
                 case "StaminaCostReduction":
                     stats.AddStatStack(statTag, new StatStack(stackSource, Modify(mult, AT.GetCharacterStat(stats, "m_staminaUseModifiers"), value, Settings.Minimum, config)), mult);
                     break;
@@ -429,11 +436,9 @@ namespace CustomGameStats
                     stats.AddStatStack(statTag, new StatStack(stackSource, Modify(mult, _dmg[1].CurrentValue, value, Settings.Minimum, config)), mult);
                     break;
                 case "DecayDamage":
-                case "DarkDamage":
                     stats.AddStatStack(statTag, new StatStack(stackSource, Modify(mult, _dmg[2].CurrentValue, value, Settings.Minimum, config)), mult);
                     break;
                 case "ElectricDamage":
-                case "LightDamage":
                     stats.AddStatStack(statTag, new StatStack(stackSource, Modify(mult, _dmg[3].CurrentValue, value, Settings.Minimum, config)), mult);
                     break;
                 case "FrostDamage":
@@ -470,7 +475,6 @@ namespace CustomGameStats
                     stats.AddStatStack(statTag, new StatStack(stackSource, Modify(mult, _pro[7].CurrentValue, value, Settings.Minimum, config)), mult);
                     break;
                 case "AllResistances":
-                case "DamageResistance":
                     stats.AddStatStack(statTag, new StatStack(stackSource, Modify(mult, AT.GetCharacterStat(stats, "m_resistanceModifiers"), value, Settings.Minimum, config)), mult);
                     break;
                 case "PhysicalResistance":
@@ -632,7 +636,7 @@ namespace CustomGameStats
 
         private VitalsInfo LoadVitalsInfo(string uid)
         {
-            string _path = $"{ _file}_{ uid }{ _ext }";
+            string _path = $"{ _file }{ uid }{ _ext }";
 
             if (File.Exists(_path))
             {
@@ -647,9 +651,9 @@ namespace CustomGameStats
 
         private void SaveVitalsInfo(string targetUid = null)
         {
-            if (!Directory.Exists(_dir))
+            if (!Directory.Exists(_file))
             {
-                Directory.CreateDirectory(_dir);
+                Directory.CreateDirectory(_file);
             }
 
             foreach (SplitPlayer _player in SplitScreenManager.Instance.LocalPlayers)
@@ -662,7 +666,7 @@ namespace CustomGameStats
                     }
                 }
 
-                string _path = $"{_file}_{ _player.AssignedCharacter.UID }{ _ext }";
+                string _path = $"{ _file }{ _player.AssignedCharacter.UID }{ _ext }";
                 VitalsInfo _vitals = new VitalsInfo
                 {
                     HealthRatio = _player.AssignedCharacter.HealthRatio,
@@ -685,6 +689,18 @@ namespace CustomGameStats
 
                 _lastVitals.Add(_player.AssignedCharacter.UID, _vitals);
                 File.WriteAllText(_path, JsonUtility.ToJson(_vitals));
+            }
+        }
+
+        private void ResetSettings()
+        {
+            if ((bool)CustomGameStats.PlayerConfig.GetValue(Settings.ResetSwitch)
+                || (bool)CustomGameStats.AIConfig.GetValue(Settings.ResetSwitch))
+            {
+                SharedModConfig.MenuManager.Instance.ToggleMenu();
+                if (Directory.Exists(_file)) { Directory.Delete(_file, true); }
+                CustomGameStats.Instance.ResetConfig(Settings.PlayerStatsTitle);
+                CustomGameStats.Instance.ResetConfig(Settings.AIStatsTitle);
             }
         }
 
