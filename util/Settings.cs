@@ -8,24 +8,27 @@ namespace CustomGameStats
         //mod naming
         public static string ModName { get; private set; } = "CustomGameStats";
         public static string PlayerStatsTitle { get; private set; } = " - Player Stats";
-        public static string AIStatsTitle { get; private set; }  = " - AI Stats";
+        public static string AIStatsTitle { get; private set; } = " - AI Stats";
 
         //rules names
         public static string ToggleSwitch { get; private set; } = "ToggleSwitch";
         public static string GameBehaviour { get; private set; } = "GameBehaviour";
         public static string StrictMinimum { get; private set; } = "StrictMinimum";
+        public static string ResetSwitch { get; private set; } = "ResetSwitch";
 
         //rules section
         public static string ToggleSection { get; private set; } = "Toggle Custom Stats";
         public static string BehaviourSection { get; private set; } = "Enforce Game Behaviour";
-        public static string StrictSection { get; private set; }  = "Enforce Strict Minimums";
+        public static string StrictSection { get; private set; } = "Enforce Strict Minimums";
+        public static string ResetSection { get; private set; } = "Reset Settings";
 
         //descriptors
         public static string MultDesc { get; private set; } = "Is a percent modifier?";
         public static string ModDesc { get; private set; } = "Modifier value: ";
-        public static string ToggleDesc { get; private set; }  = "Enable/disable";
+        public static string ToggleDesc { get; private set; } = "Enable/disable";
         public static string BehaviourDesc { get; private set; } = "Prevents unexpected behaviour to occur. Use with caution!";
         public static string StrictDesc { get; private set; } = "Prevents values from being reduced below zero. Do not touch unless you know what you are doing! (Ignored if Enforce Game Behaviour enabled)";
+        public static string ResetDesc { get; private set; } = "Reset all settings. Tick the box and hit apply to reset everything to default.";
 
         //stat stacks
         public static string PlayerStats { get; private set; }  = "PlayerStatStack";
@@ -51,7 +54,7 @@ namespace CustomGameStats
         public static string HealthBurnMod { get; private set; } = "HealthBurn";
         public static string StaminaMod { get; private set; } = "MaxStamina";
         public static string StaminaRegenMod { get; private set; } = "StaminaRegen";
-        public static string StaminaUseMod { get; private set; } = "StaminaUse";
+//        public static string StaminaUseMod { get; private set; } = "StaminaUse";
         public static string StaminaCostReducMod { get; private set; } = "StaminaCostReduction";
         public static string StaminaBurnMod { get; private set; } = "StaminaBurn";
         public static string ManaMod { get; private set; } = "MaxMana";
@@ -66,8 +69,8 @@ namespace CustomGameStats
         public static string ElectricDamageMod { get; private set; } = "ElectricDamage";
         public static string FrostDamageMod { get; private set; }  = "FrostDamage";
         public static string FireDamageMod { get; private set; } = "FireDamage";
-        public static string DarkDamageMod { get; private set; }  = "DarkDamage";
-        public static string LightDamageMod { get; private set; } = "LightDamage";
+//        public static string DarkDamageMod { get; private set; }  = "DarkDamage";
+//        public static string LightDamageMod { get; private set; } = "LightDamage";
         public static string DamageProtectionMod { get; private set; }  = "DamageProtection";
         public static string PhysicalProtectionMod { get; private set; }  = "PhysicalProtection";
         public static string EtherealProtectionMod { get; private set; } = "EtherealProtection";
@@ -78,7 +81,7 @@ namespace CustomGameStats
         public static string DarkProtectionMod { get; private set; } = "DarkProtection";
         public static string LightProtectionMod { get; private set; } = "LightProtection";
         public static string AllResistancesMod { get; private set; } = "AllResistances";
-        public static string DamageResistanceMod { get; private set; } = "DamageResistance";
+//        public static string DamageResistanceMod { get; private set; } = "DamageResistance";
         public static string PhysicalResistanceMod { get; private set; } = "PhysicalResistance";
         public static string EtherealResistanceMod { get; private set; } = "EtherealResistance";
         public static string DecayResistanceMod { get; private set; } = "DecayResistance";
@@ -117,7 +120,7 @@ namespace CustomGameStats
         public static string HealthBurnSection { get; private set; } = "Health Burn Rate";
         public static string StaminaSection { get; private set; } = "Maximum Stamina";
         public static string StaminaRegenSection { get; private set; } = "Stamina Regeneration";
-        public static string StaminaUseSection { get; private set; } = "Stamina Usage Rate";
+//        public static string StaminaUseSection { get; private set; } = "Stamina Usage Rate";
         public static string StaminaCostSection { get; private set; } = "Stamina Cost Reduction";
         public static string StaminaBurnSection { get; private set; } = "Stamina Burn Rate";
         public static string ManaSection { get; private set; } = "Maximum Mana";
@@ -132,9 +135,9 @@ namespace CustomGameStats
         public static string ElectricDamageSection { get; private set; } = "Electric Damage";
         public static string FrostDamageSection { get; private set; } = "Frost Damage";
         public static string FireDamageSection { get; private set; } = "Fire Damage";
-        public static string DarkDamageSection { get; private set; } = "Dark Damage";
-        public static string LightDamageSection { get; private set; } = "Light Damage";
-        public static string DamageProtectionSection { get; private set; } = "Damage Protection";
+//        public static string DarkDamageSection { get; private set; } = "Dark Damage";
+//        public static string LightDamageSection { get; private set; } = "Light Damage";
+        public static string DamageProtectionSection { get; private set; } = "All Protection";
         public static string PhysicalProtectionSection { get; private set; } = "Physical Protection";
         public static string EtherealProtectionSection { get; private set; } = "Ethereal Protection";
         public static string DecayProtectionSection { get; private set; } = "Decay Protection";
@@ -144,7 +147,7 @@ namespace CustomGameStats
         public static string DarkProtectionSection { get; private set; } = "Dark Protection";
         public static string LightProtectionSection { get; private set; } = "Light Protection";
         public static string AllResistancesSection { get; private set; } = "All Resistances";
-        public static string DamageResistanceSection { get; private set; } = "Damage Resistance";
+//        public static string DamageResistanceSection { get; private set; } = "Damage Resistance";
         public static string PhysicalResistanceSection { get; private set; } = "Physical Resistance";
         public static string EtherealResistanceSection { get; private set; } = "Ethereal Resistance";
         public static string DecayResistanceSection { get; private set; } = "Decay Resistance";
@@ -191,6 +194,13 @@ namespace CustomGameStats
                 SectionTitle = StrictSection,
                 Description = StrictDesc,
                 DefaultValue = true
+            },
+            new BoolSetting
+            {
+                Name = ResetSwitch,
+                SectionTitle = ResetSection,
+                Description = ResetDesc,
+                DefaultValue = false
             }
         };
 
@@ -617,22 +627,22 @@ namespace CustomGameStats
                 MaxValue = 500f,
                 RoundTo = 0
             },
-            new BoolSetting
-            {
-                Name = StaminaUseMod + ModMult,
-                SectionTitle = StaminaUseSection,
-                Description = MultDesc,
-                DefaultValue = true
-            },
-            new FloatSetting
-            {
-                Name = StaminaUseMod,
-                Description = ModDesc,
-                DefaultValue = 0f,
-                MinValue = -500f,
-                MaxValue = 500f,
-                RoundTo = 0
-            },
+            //new BoolSetting
+            //{
+            //    Name = StaminaUseMod + ModMult,
+            //    SectionTitle = StaminaUseSection,
+            //    Description = MultDesc,
+            //    DefaultValue = true
+            //},
+            //new FloatSetting
+            //{
+            //    Name = StaminaUseMod,
+            //    Description = ModDesc,
+            //    DefaultValue = 0f,
+            //    MinValue = -500f,
+            //    MaxValue = 500f,
+            //    RoundTo = 0
+            //},
             new BoolSetting
             {
                 Name = StaminaCostReducMod + ModMult,
@@ -857,38 +867,38 @@ namespace CustomGameStats
                 MaxValue = 500f,
                 RoundTo = 0
             },
-            new BoolSetting
-            {
-                Name = DarkDamageMod + ModMult,
-                SectionTitle = DarkDamageSection,
-                Description = MultDesc,
-                DefaultValue = true
-            },
-            new FloatSetting
-            {
-                Name = DarkDamageMod,
-                Description = ModDesc,
-                DefaultValue = 0f,
-                MinValue = -500f,
-                MaxValue = 500f,
-                RoundTo = 0
-            },
-            new BoolSetting
-            {
-                Name = LightDamageMod + ModMult,
-                SectionTitle = LightDamageSection,
-                Description = MultDesc,
-                DefaultValue = true
-            },
-            new FloatSetting
-            {
-                Name = LightDamageMod,
-                Description = ModDesc,
-                DefaultValue = 0f,
-                MinValue = -500f,
-                MaxValue = 500f,
-                RoundTo = 0
-            },
+            //new BoolSetting
+            //{
+            //    Name = DarkDamageMod + ModMult,
+            //    SectionTitle = DarkDamageSection,
+            //    Description = MultDesc,
+            //    DefaultValue = true
+            //},
+            //new FloatSetting
+            //{
+            //    Name = DarkDamageMod,
+            //    Description = ModDesc,
+            //    DefaultValue = 0f,
+            //    MinValue = -500f,
+            //    MaxValue = 500f,
+            //    RoundTo = 0
+            //},
+            //new BoolSetting
+            //{
+            //    Name = LightDamageMod + ModMult,
+            //    SectionTitle = LightDamageSection,
+            //    Description = MultDesc,
+            //    DefaultValue = true
+            //},
+            //new FloatSetting
+            //{
+            //    Name = LightDamageMod,
+            //    Description = ModDesc,
+            //    DefaultValue = 0f,
+            //    MinValue = -500f,
+            //    MaxValue = 500f,
+            //    RoundTo = 0
+            //},
             new BoolSetting
             {
                 Name = DamageProtectionMod + ModMult,
@@ -1049,22 +1059,22 @@ namespace CustomGameStats
                 MaxValue = 500f,
                 RoundTo = 0
             },
-            new BoolSetting
-            {
-                Name = DamageResistanceMod + ModMult,
-                SectionTitle = DamageResistanceSection,
-                Description = MultDesc,
-                DefaultValue = false
-            },
-            new FloatSetting
-            {
-                Name = DamageResistanceMod,
-                Description = ModDesc,
-                DefaultValue = 0f,
-                MinValue = -500f,
-                MaxValue = 500f,
-                RoundTo = 0
-            },
+            //new BoolSetting
+            //{
+            //    Name = DamageResistanceMod + ModMult,
+            //    SectionTitle = DamageResistanceSection,
+            //    Description = MultDesc,
+            //    DefaultValue = false
+            //},
+            //new FloatSetting
+            //{
+            //    Name = DamageResistanceMod,
+            //    Description = ModDesc,
+            //    DefaultValue = 0f,
+            //    MinValue = -500f,
+            //    MaxValue = 500f,
+            //    RoundTo = 0
+            //},
             new BoolSetting
             {
                 Name = CorruptionResistanceMod + ModMult,
