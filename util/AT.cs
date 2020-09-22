@@ -45,12 +45,14 @@ namespace CustomGameStats
         public static float GetCharacterStat(CharacterStats stats, string field)
         {
             Stat _stat = (Stat)GetValue(typeof(CharacterStats), stats, field);
+            _stat.Update();
             return _stat.CurrentValue;
         }
 
         public static float GetPlayerStat(PlayerCharacterStats stats, string field)
         {
             Stat _stat = (Stat)GetValue(typeof(PlayerCharacterStats), stats, field);
+            _stat.Update();
             return _stat.CurrentValue;
         }
     }
