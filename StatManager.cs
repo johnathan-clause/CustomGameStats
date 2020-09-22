@@ -357,7 +357,7 @@ namespace CustomGameStats
                     }
                     else
                     {
-                        ClearCustomStat(character.Stats, _tag, stackSource, _mult);
+                        ClearCustomStat(character.Stats, _tag, stackSource);
                     }
                     
                 }
@@ -374,7 +374,7 @@ namespace CustomGameStats
         // monster switch statement ahead...
         private void SetCustomStat(CharacterStats stats, string stackSource, Tag statTag, float value, bool mult, ModConfig config)
         {
-            ClearCustomStat(stats, statTag, stackSource, mult);
+            ClearCustomStat(stats, statTag, stackSource);
             stats.RefreshVitalMaxStat();
             Stat[] _dmg = (Stat[])AT.GetValue(typeof(CharacterStats), stats, "m_damageTypesModifier");
             Stat[] _pro = (Stat[])AT.GetValue(typeof(CharacterStats), stats, "m_damageProtection");
@@ -569,10 +569,10 @@ namespace CustomGameStats
             }
         }
 
-        private void ClearCustomStat(CharacterStats stats, Tag statTag, string stackSource, bool mult)
+        private void ClearCustomStat(CharacterStats stats, Tag statTag, string stackSource)
         {
-            stats.RemoveStatStack(statTag, stackSource, !mult);
-            stats.RemoveStatStack(statTag, stackSource, mult);
+            stats.RemoveStatStack(statTag, stackSource, true);
+            stats.RemoveStatStack(statTag, stackSource, false);
         }
 
         private void UpdateVitals(CharacterStats stats, VitalsInfo ratios, ModConfig config)
