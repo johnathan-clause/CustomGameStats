@@ -2,21 +2,17 @@
 using System.Collections.Generic;
 using System.IO;
 using HarmonyLib;
-using Photon;
 using SharedModConfig;
 using UnityEngine;
 
 namespace CustomGameStats
 {
-    public class StatManager : PunBehaviour
+    public class StatManager : MonoBehaviour
     {
         public static StatManager Instance { get; private set; }
 
         public ModConfig CurrentPlayerSyncInfo { get; set; }
         public ModConfig CurrentAISyncInfo { get; set; }
-
-        private static readonly string _file = $"Mods\\ModConfigs\\{ Settings.ModName }-v{ CustomGameStats.VERSION }\\";
-        private static readonly string _ext = ".json";
 
         private readonly Dictionary<string, VitalsInfo> _lastVitals = new Dictionary<string, VitalsInfo>();
 
@@ -605,7 +601,7 @@ namespace CustomGameStats
 
         private VitalsInfo LoadVitalsInfo(string uid)
         {
-            string _path = $"{ _file }{ uid }{ _ext }";
+            string _path = $"{ CustomGameStats.Dir }{ uid }.json";
 
             if (File.Exists(_path))
             {
@@ -630,7 +626,7 @@ namespace CustomGameStats
                     }
                 }
 
-                string _path = $"{ _file }{ _player.AssignedCharacter.UID }{ _ext }";
+                string _path = $"{ CustomGameStats.Dir }{ _player.AssignedCharacter.UID }.json";
                 VitalsInfo _vitals = new VitalsInfo
                 {
                     HealthRatio = _player.AssignedCharacter.HealthRatio,
