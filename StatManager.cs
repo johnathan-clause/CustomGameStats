@@ -668,8 +668,6 @@ namespace CustomGameStats
             if ((bool)CustomGameStats.PlayerConfig.GetValue(Settings.ResetSwitch)
                 || (bool)CustomGameStats.AIConfig.GetValue(Settings.ResetSwitch))
             {
-                SharedModConfig.MenuManager.Instance.ToggleMenu();
-                if (Directory.Exists(_file)) { Directory.Delete(_file, true); }
                 CustomGameStats.Instance.ResetConfig(Settings.PlayerStatsTitle);
                 CustomGameStats.Instance.ResetConfig(Settings.AIStatsTitle);
             }
