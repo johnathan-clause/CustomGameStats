@@ -1,4 +1,6 @@
 ﻿using System.Collections.Generic;
+using System.IO;
+using UnityEngine;
 using BepInEx;
 using BepInEx.Logging;
 using HarmonyLib;
@@ -18,6 +20,10 @@ namespace CustomGameStats
         public static CustomGameStats Instance { get; private set; }
         public static ModConfig PlayerConfig { get; private set; }
         public static ModConfig AIConfig { get; private set; }
+        public static string Dir { get; private set; } = $@"Mods\ModConfigs\{ Settings.ModName }\";
+
+        //mod settings
+        public bool FirstRun = true;
 
         internal void Awake()
         {
@@ -33,6 +39,8 @@ namespace CustomGameStats
 
         internal void Start()
         {
+            Init();
+
             PlayerConfig = SetupConfig(Settings.PlayerStatsTitle);
             PlayerConfig.Register();
 
@@ -59,6 +67,31 @@ namespace CustomGameStats
                     _setting.SetValue(_setting.DefaultValue);
                 }
             }
+        }
+
+        private void Init()
+        {
+            string _file = $@"Mods\{ Settings.ModName }.json";
+            string _path = $@"Mods\ModConfigs\{ Settings.ModName}";
+
+            if (!Directory.Exists(Dir))
+            {
+                Directory.CreateDirectory(Dir);
+            }
+            else
+            {
+                if (!File.Exists(_file))
+                {
+                    File.WriteAllText(_file, JsonUtility.ToJson(new CustomGameStats()));
+                }
+            }
+
+            CustomGameStats _settings = JsonUtility.FromJson<CustomGameStats>(_file);
+            if (!_settings.FirstRun) { return; }
+
+            if (File.Exists($"{ _path }{ Settings.PlayerStatsTitle }.xml")) { File.Delete($"{ _path }{ Settings.PlayerStatsTitle }.xml"); }
+            if (File.Exists($"{ _path }{ Settings.AIStatsTitle }.xml")) { File.Delete($"{ _path }{ Settings.AIStatsTitle }.xml"); }
+            Directory.Delete(Dir, true);
         }
 
         private ModConfig SetupConfig(string flag)
