@@ -22,9 +22,6 @@ namespace CustomGameStats
         public static ModConfig AIConfig { get; private set; }
         public static string Dir { get; private set; } = $@"Mods\ModConfigs\{ Settings.ModName }\";
 
-        //mod settings
-        public bool FirstRun = true;
-
         internal void Awake()
         {
             Instance = this;
@@ -71,6 +68,7 @@ namespace CustomGameStats
 
         private void Init()
         {
+            ModSettings _ms = new ModSettings();
             string _file = $@"Mods\{ Settings.ModName }.json";
             string _path = $@"Mods\ModConfigs\{ Settings.ModName}";
 
@@ -78,20 +76,24 @@ namespace CustomGameStats
             {
                 Directory.CreateDirectory(Dir);
             }
-            else
+
+            if (!File.Exists(_file))
             {
-                if (!File.Exists(_file))
-                {
-                    File.WriteAllText(_file, JsonUtility.ToJson(new CustomGameStats()));
-                }
+                _ms.FirstRun = true;
+                File.WriteAllText(_file, JsonUtility.ToJson(_ms));
             }
 
-            CustomGameStats _settings = JsonUtility.FromJson<CustomGameStats>(_file);
+            ModSettings _settings = JsonUtility.FromJson<ModSettings>(File.ReadAllText(_file));
             if (!_settings.FirstRun) { return; }
 
             if (File.Exists($"{ _path }{ Settings.PlayerStatsTitle }.xml")) { File.Delete($"{ _path }{ Settings.PlayerStatsTitle }.xml"); }
             if (File.Exists($"{ _path }{ Settings.AIStatsTitle }.xml")) { File.Delete($"{ _path }{ Settings.AIStatsTitle }.xml"); }
+
             Directory.Delete(Dir, true);
+            Directory.CreateDirectory(Dir);
+
+            _ms.FirstRun = false;
+            File.WriteAllText(_file, JsonUtility.ToJson(_ms));
         }
 
         private ModConfig SetupConfig(string flag)
