@@ -82,6 +82,7 @@
     <Compile Include="RPCManager.cs" />
     <Compile Include="StatManager.cs" />
     <Compile Include="util\AT.cs" />
+    <Compile Include="util\ModSettings.cs" />
     <Compile Include="util\Settings.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="util\VitalsInfo.cs" />

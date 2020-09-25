@@ -1,4 +1,6 @@
 ﻿using System.Collections.Generic;
+using System.IO;
+using UnityEngine;
 using BepInEx;
 using BepInEx.Logging;
 using HarmonyLib;
@@ -12,12 +14,13 @@ namespace CustomGameStats
     {
         public const string GUID = "com.theinterstice.customgamestats";
         public const string NAME = "Custom Game Stats";
-        public const string VERSION = "2.1.4";
+        public const string VERSION = "2.1.5";
         public const string DEPENDENT = SharedModConfig.SharedModConfig.GUID;
 
         public static CustomGameStats Instance { get; private set; }
         public static ModConfig PlayerConfig { get; private set; }
         public static ModConfig AIConfig { get; private set; }
+        public static string Dir { get; private set; } = $@"Mods\ModConfigs\{ Settings.ModName }\";
 
         internal void Awake()
         {
@@ -33,6 +36,8 @@ namespace CustomGameStats
 
         internal void Start()
         {
+            Init();
+
             PlayerConfig = SetupConfig(Settings.PlayerStatsTitle);
             PlayerConfig.Register();
 
@@ -61,6 +66,36 @@ namespace CustomGameStats
             }
         }
 
+        private void Init()
+        {
+            ModSettings _ms = new ModSettings();
+            string _file = $@"Mods\{ Settings.ModName }.json";
+            string _path = $@"Mods\ModConfigs\{ Settings.ModName}";
+
+            if (!Directory.Exists(Dir))
+            {
+                Directory.CreateDirectory(Dir);
+            }
+
+            if (!File.Exists(_file))
+            {
+                _ms.FirstRun = true;
+                File.WriteAllText(_file, JsonUtility.ToJson(_ms));
+            }
+
+            ModSettings _settings = JsonUtility.FromJson<ModSettings>(File.ReadAllText(_file));
+            if (!_settings.FirstRun) { return; }
+
+            if (File.Exists($"{ _path }{ Settings.PlayerStatsTitle }.xml")) { File.Delete($"{ _path }{ Settings.PlayerStatsTitle }.xml"); }
+            if (File.Exists($"{ _path }{ Settings.AIStatsTitle }.xml")) { File.Delete($"{ _path }{ Settings.AIStatsTitle }.xml"); }
+
+            Directory.Delete(Dir, true);
+            Directory.CreateDirectory(Dir);
+
+            _ms.FirstRun = false;
+            File.WriteAllText(_file, JsonUtility.ToJson(_ms));
+        }
+
         private ModConfig SetupConfig(string flag)
         {
             List<BBSetting> _bbs = new List<BBSetting>();
@@ -82,7 +117,7 @@ namespace CustomGameStats
 
             ModConfig _config = new ModConfig
             {
-                ModName = $"{ Settings.ModName } v{ VERSION }{ flag }",
+                ModName = $"{ Settings.ModName }{ flag }",
                 SettingsVersion = 1.0,
                 Settings = _bbs
             };
