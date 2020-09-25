@@ -351,7 +351,6 @@ namespace CustomGameStats
             }
         }
 
-        // monster switch statement ahead...
         private void SetCustomStat(CharacterStats stats, string stackSource, Tag statTag, float value, bool mult)
         {
             ClearCustomStat(stats, statTag, stackSource);
