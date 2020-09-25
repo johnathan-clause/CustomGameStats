@@ -17,7 +17,7 @@ namespace CustomGameStats
 
 
         private static readonly string _dir = @"Mods\ModConfigs\";
-        private static readonly string _file = $"{ _dir }{ Settings.ModName } v{ CustomGameStats.VERSION }\\";
+        private static readonly string _file = $"{ _dir }{ Settings.ModName }-v{ CustomGameStats.VERSION }\\";
         private static readonly string _ext = ".json";
 
         private readonly Dictionary<string, VitalsInfo> _lastVitals = new Dictionary<string, VitalsInfo>();
