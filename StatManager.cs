@@ -15,9 +15,7 @@ namespace CustomGameStats
         public ModConfig CurrentPlayerSyncInfo { get; set; }
         public ModConfig CurrentAISyncInfo { get; set; }
 
-
-        private static readonly string _dir = @"Mods\ModConfigs\";
-        private static readonly string _file = $"{ _dir }{ Settings.ModName }-v{ CustomGameStats.VERSION }\\";
+        private static readonly string _file = $"Mods\\ModConfigs\\{ Settings.ModName }-v{ CustomGameStats.VERSION }\\";
         private static readonly string _ext = ".json";
 
         private readonly Dictionary<string, VitalsInfo> _lastVitals = new Dictionary<string, VitalsInfo>();
@@ -622,11 +620,6 @@ namespace CustomGameStats
 
         private void SaveVitalsInfo(string targetUid = null)
         {
-            if (!Directory.Exists(_file))
-            {
-                Directory.CreateDirectory(_file);
-            }
-
             foreach (SplitPlayer _player in SplitScreenManager.Instance.LocalPlayers)
             {
                 if (targetUid != null)
