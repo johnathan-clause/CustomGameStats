@@ -82,7 +82,7 @@ namespace CustomGameStats
 
             ModConfig _config = new ModConfig
             {
-                ModName = $"{ Settings.ModName } v{ VERSION }{ flag }",
+                ModName = $"{ Settings.ModName }{ flag }",
                 SettingsVersion = 1.0,
                 Settings = _bbs
             };
